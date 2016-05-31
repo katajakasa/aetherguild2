@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+
+import os
+BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+PORT = 8000
+DEBUG = True
+DATABASE_CONFIG = 'sqlite:///{}'.format(os.path.join(BASEDIR, "database.db"))
+PUBLIC_PATH = os.path.join(BASEDIR, "frontend")
+MQ_CONFIG = 'amqp://guest:guest@localhost:5672/myvhost/'
