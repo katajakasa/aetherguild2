@@ -101,7 +101,15 @@ class MQConnection(object):
         self.consumer = self.channel.basic_consume(self.on_message, config.MQ_FROM_LISTENER)
 
     def on_message(self, unused_channel, basic_deliver, properties, body):
-        if self._on_message_handler and self._on_message_handler(json.loads(body)):
+        try:
+            data = json.loads(body)
+        except ValueError:
+            self.ack(basic_deliver.delivery_tag)
+            log.debug(u"MQ: Dropped bad package: %s", data)
+            return
+
+        log.info(u"MQ: Queue %s => %s", config.MQ_FROM_LISTENER, data)
+        if self._on_message_handler and self._on_message_handler(data):
             self.ack(basic_deliver.delivery_tag)
         else:
             self.nack(basic_deliver.delivery_tag)
@@ -115,7 +123,7 @@ class MQConnection(object):
     # ------------------------ Messaging ------------------------
 
     def publish(self, data):
-        log.info(u"MQ: Queue %s => %s", config.MQ_TO_LISTENER, data)
+        log.info(u"MQ: Queue %s <= %s", config.MQ_TO_LISTENER, data)
         self.channel.basic_publish(
             exchange=config.MQ_EXCHANGE,
             routing_key=config.MQ_TO_LISTENER,
