@@ -3,8 +3,30 @@
 import os
 BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Bind port and interface (0.0.0.0 for all interfaces)
 PORT = 8000
+ADDRESS = "0.0.0.0"
+
+# Debug mode
 DEBUG = True
+
+# Database configuration
 DATABASE_CONFIG = 'sqlite:///{}'.format(os.path.join(BASEDIR, "database.db"))
-PUBLIC_PATH = os.path.join(BASEDIR, "frontend")
+
+# MQ Configuration
 MQ_CONFIG = 'amqp://guest:guest@localhost:5672/myvhost/'
+
+# Logging level
+# 0 = DEBUG
+# 1 = INFO
+# 2 = WARNING
+# 3 = ERROR
+# 4 = CRITICAL
+LOG_LEVEL = 1
+
+# Do not change unless you know what you are doing
+PUBLIC_PATH = os.path.join(BASEDIR, "frontend")
+MQ_EXCHANGE = '/exchange/exchange'
+MQ_TO_LISTENER = '/queue/to_listener'
+MQ_FROM_LISTENER = '/queue/from_listener'
+
