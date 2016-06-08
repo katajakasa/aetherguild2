@@ -11,10 +11,17 @@ ADDRESS = "0.0.0.0"
 DEBUG = True
 
 # Database configuration
-DATABASE_CONFIG = 'sqlite:///{}'.format(os.path.join(BASEDIR, "database.db"))
+# !!! Use pymysql as a driver for utf8mb4 support
+# 1. CREATE DATABASE aetherguild2;
+# 2. ALTER DATABASE aetherguild2 CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+# 3. GRANT ALL PRIVILEGES ON aetherguild2.* To '<username>'@'localhost' IDENTIFIED BY '<password>';
+DATABASE_CONFIG = 'mysql+pymysql://<username>:<password>@localhost/<database>?charset=utf8mb4'
 
 # MQ Configuration
-MQ_CONFIG = 'amqp://guest:guest@localhost:5672/myvhost/'
+# 1. rabbitmqctl add_user <username> <password>
+# 2. rabbitmqctl add_vhost aetherguild2
+# 3. rabbitmqctl set_permissions -p aetherguild2 <username> ".*" ".*" ".*"
+MQ_CONFIG = 'amqp://aetherguild2:guest@localhost:5672/aether/'
 
 # Logging level
 # 0 = DEBUG
@@ -26,7 +33,7 @@ LOG_LEVEL = 1
 
 # Do not change unless you know what you are doing
 PUBLIC_PATH = os.path.join(BASEDIR, "frontend")
-MQ_EXCHANGE = '/exchange/exchange'
+MQ_EXCHANGE = '/exchange/direct'
 MQ_TO_LISTENER = '/queue/to_listener'
 MQ_FROM_LISTENER = '/queue/from_listener'
 

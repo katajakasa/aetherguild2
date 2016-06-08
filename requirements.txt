@@ -2,3 +2,6 @@ tornado
 sqlalchemy
 pika
 passlib
+arrow
+alembic
+pymysql
