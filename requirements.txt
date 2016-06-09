@@ -5,3 +5,4 @@ passlib
 arrow
 alembic
 pymysql
+tabulate

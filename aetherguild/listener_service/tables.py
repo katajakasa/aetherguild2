@@ -11,7 +11,15 @@ Base = declarative_base()
 class ModelHelperMixin(object):
     @classmethod
     def get_one(cls, session, **kwargs):
-        session.query(cls).filter_by(**kwargs).one()
+        return session.query(cls).filter_by(**kwargs).one()
+
+    @classmethod
+    def get_many(cls, session, **kwargs):
+        return session.query(cls).filter_by(**kwargs).all()
+
+    @classmethod
+    def delete(cls, session, **kwargs):
+        session.query(cls).filter_by(**kwargs).delete()
 
 
 class ModelFormatMixin(object):
@@ -24,7 +32,7 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(32), unique=True)
     password = Column(String(256))
-    alias = Column(String(32))
+    nickname = Column(String(32))
     level = Column(Integer, default=1)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
@@ -34,7 +42,7 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
         return {
             'id': self.id,
             'username': self.username,
-            'alias': self.alias,
+            'nickname': self.nickname,
             'level': self.level,
             'active': self.active,
             'created_at': arrow.get(self.created_at).isoformat(),
