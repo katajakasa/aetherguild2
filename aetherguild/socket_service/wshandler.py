@@ -26,6 +26,9 @@ class WsHandler(WebSocketHandler):
         self.connections[self.id] = self
         log.info("Sock: Connection opened (%s)", self.id)
 
+    def handle_control_packet(self, message):
+        pass
+
     def on_message(self, message):
         """ Handler for messages coming from websocket """
         try:
@@ -51,17 +54,26 @@ class WsHandler(WebSocketHandler):
     @classmethod
     def on_queue_message(cls, message):
         """ Handler for messages coming from MQ queue """
-        try:
-            if message['head']['broadcast']:
-                for key, connection in cls.connections.items():
-                    connection.write_message(message['body'])
-            else:
-                connection_id = message['head']['connection_id']
-                connection = cls.connections.get(connection_id)
-                if connection:
-                    connection.write_message(message['body'])
-            return True
-        except TypeError:
-            log.info("Sock: Dropped bad message: %s", message)
-            return True
+        header = message['head']
+        body = message['body']
+        connection_id = header.get('connection_id')
+        avoid_self = header.get('avoid_self', False)
+        broadcast = header.get('broadcast', False)
+        is_control = header.get('is_control', False)
 
+        # Handle it!!1
+        if broadcast:
+            for key, connection in cls.connections.items():
+                if avoid_self and key == connection_id:
+                    continue
+                if is_control:
+                    connection.handle_control_packet(body)
+                else:
+                    connection.write_message(body)
+        else:
+            connection = cls.connections.get(connection_id)
+            if connection:
+                if is_control:
+                    connection.handle_control_packet(body)
+                else:
+                    connection.write_message(body)

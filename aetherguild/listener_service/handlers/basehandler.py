@@ -6,5 +6,5 @@ class BaseHandler(object):
         self.db_session = db_session
         self.mq_session = mq_session
 
-    def handle(self, connection_id, message):
+    def handle(self, route, connection_id, message):
         pass

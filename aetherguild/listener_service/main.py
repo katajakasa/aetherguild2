@@ -35,7 +35,10 @@ if __name__ == '__main__':
     db_session.configure(bind=engine)
 
     consumer = Consumer(db_session)
-    consumer.handle()
+    try:
+        consumer.handle()
+    except KeyboardInterrupt:
+        pass
     consumer.close()
 
     # All done. Close.

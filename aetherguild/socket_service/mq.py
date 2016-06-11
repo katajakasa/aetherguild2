@@ -101,24 +101,24 @@ class MQConnection(object):
         self.consumer = self.channel.basic_consume(self.on_message, config.MQ_FROM_LISTENER)
 
     def on_message(self, unused_channel, basic_deliver, properties, body):
+        log.info(u"MQ: Queue %s => %s", config.MQ_FROM_LISTENER, body)
         try:
             data = json.loads(body)
         except ValueError:
-            self.ack(basic_deliver.delivery_tag)
-            log.debug(u"MQ: Dropped bad package: %s", data)
+            self.channel.basic_nack(basic_deliver.delivery_tag, requeue=False)
+            log.warning(u"MQ: NACK %s", basic_deliver.delivery_tag)
             return
 
-        log.info(u"MQ: Queue %s => %s", config.MQ_FROM_LISTENER, data)
-        if self._on_message_handler and self._on_message_handler(data):
-            self.ack(basic_deliver.delivery_tag)
+        if self._on_message_handler:
+            try:
+                self._on_message_handler(data)
+                self.channel.basic_ack(basic_deliver.delivery_tag)
+                log.info(u"MQ: ACK %s", basic_deliver.delivery_tag)
+            except Exception as e:
+                self.channel.basic_nack(basic_deliver.delivery_tag, requeue=False)
+                log.error(u"MQ: NACK %s", basic_deliver.delivery_tag, exc_info=e)
         else:
-            self.nack(basic_deliver.delivery_tag)
-
-    def ack(self, delivery_tag):
-        self.channel.basic_ack(delivery_tag)
-
-    def nack(self, delivery_tag):
-        self.channel.basic_nack(delivery_tag)
+            self.channel.basic_ack(basic_deliver.delivery_tag)
 
     # ------------------------ Messaging ------------------------
 
