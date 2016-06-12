@@ -12,10 +12,11 @@ DEBUG = True
 
 # Database configuration
 # !!! Use pymysql as a driver for utf8mb4 support
-# 1. CREATE DATABASE aetherguild2;
-# 2. ALTER DATABASE aetherguild2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-# 3. GRANT ALL PRIVILEGES ON aetherguild2.* To '<username>'@'localhost' IDENTIFIED BY '<password>';
-DATABASE_CONFIG = 'mysql+pymysql://<username>:<password>@localhost/<database>?charset=utf8mb4'
+# 1. mysql -u root -p
+# 2. CREATE DATABASE aetherguild2;
+# 3. ALTER DATABASE aetherguild2 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# 4. GRANT ALL PRIVILEGES ON aetherguild2.* To '<username>'@'localhost' IDENTIFIED BY '<password>';
+DATABASE_CONFIG = 'mysql+pymysql://<username>:<password>@localhost/aetherguild2?charset=utf8mb4'
 
 # MQ Configuration
 # 1. rabbitmqctl add_user <username> <password>
