@@ -24,6 +24,7 @@ Response (server -> client), success:
 {
     'route': 'auth.login',
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
     'data': {
         'session_key': <str Session key>,
     }
@@ -70,6 +71,7 @@ Response (server -> client), success:
 {
     'route': 'auth.authenticate',
     'receipt': <variable Receipt ID>, // Receipt ID, if one was supplied on request
+    'error': false,
     'data': {
         'session_key': '<str Session key>',
         'user': {
@@ -102,3 +104,33 @@ Possible response error codes:
 * 500: Server error
 * 401: Login failure; need to authenticate
 
+## 3. Logout
+
+Requests the server to invalidate the current authenticated session. All user privileges are dropped, all operations
+requiring authorization will fail after this to error 403.
+
+To run this command, user must have a valid session (be logged in).
+
+Request (client -> server):
+```
+{
+    'route': 'auth.logout',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'auth.logout',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'loggedout': true,
+    }
+}
+```
+
+Possible response error codes:
+* 403: Forbidden

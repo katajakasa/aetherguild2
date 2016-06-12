@@ -45,6 +45,10 @@ class UserSession(object):
             return level <= self.user.level
         return False
 
+    def invalidate(self):
+        if self.session:
+            Session.delete(self.db, id=self.session.id)
+
     def update(self):
         if self.session:
             self.db.query(Session).filter_by(id=self.session.id).update({'activity_at': datetime.utcnow()})

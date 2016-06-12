@@ -17,6 +17,7 @@ class WsHandler(WebSocketHandler):
         super(WsHandler, self).__init__(application, request, **kwargs)
         self.id = None
         self.session_key = None
+        self.user_level = 0
 
     def check_origin(self, origin):
         if config.DEBUG:
@@ -34,8 +35,10 @@ class WsHandler(WebSocketHandler):
         route = message['route']
         if route == 'auth.authenticate' or route == 'auth.login':
             self.session_key = message['session_key']
+            self.user_level = message['level']
         elif route == 'auth.logout':
             self.session_key = None
+            self.user_level = 0
 
     def on_message(self, message):
         """ Handler for messages coming from websocket """
@@ -65,24 +68,34 @@ class WsHandler(WebSocketHandler):
         """ Handler for messages coming from MQ queue """
         header = message['head']
         body = message['body']
-        connection_id = header.get('connection_id')
-        avoid_self = header.get('avoid_self', False)
-        broadcast = header.get('broadcast', False)
-        is_control = header.get('is_control', False)
+        connection_id = header['connection_id']
+        avoid_self = header['avoid_self']
+        broadcast = header['broadcast']
+        is_control = header['is_control']
+        req_level = header['req_level']
 
-        # Handle it!!1
+        # Many whelps! Handle it!!1
         if broadcast:
             for key, connection in cls.connections.items():
+                # If broadcasting but avoiding self, skip connection if required
                 if avoid_self and key == connection_id:
                     continue
-                if is_control:
-                    connection.handle_control_packet(body)
-                else:
-                    connection.write_message(body)
+                # Make sure client has sufficient privileges
+                if connection.user_level >= req_level:
+                    # If packet is control, handle it as such.
+                    # Otherwise broadcast standard message.
+                    if is_control:
+                        connection.handle_control_packet(body)
+                    else:
+                        connection.write_message(body)
         else:
             connection = cls.connections.get(connection_id)
             if connection:
-                if is_control:
-                    connection.handle_control_packet(body)
-                else:
-                    connection.write_message(body)
+                # Make sure client has sufficient privileges
+                if connection.user_level >= req_level:
+                    # If packet is control, handle it as such
+                    # Otherwise broadcast standard message.
+                    if is_control:
+                        connection.handle_control_packet(body)
+                    else:
+                        connection.write_message(body)

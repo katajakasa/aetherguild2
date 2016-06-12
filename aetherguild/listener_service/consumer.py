@@ -16,7 +16,7 @@ class Consumer(object):
         self.connection = pika.BlockingConnection(pika.URLParameters(config.MQ_CONFIG))
         self.channel = self.connection.channel()
 
-    def publish(self, message, connection_id=None, broadcast=False, avoid_self=False, is_control=False):
+    def publish(self, message, connection_id=None, broadcast=False, avoid_self=False, is_control=False, req_level=0):
         """ Publish a message to the outgoing queue
 
         :param message: Message to be sent to the client
@@ -30,7 +30,8 @@ class Consumer(object):
                 'connection_id': connection_id,
                 'avoid_self': avoid_self,
                 'broadcast': broadcast,
-                'is_control': is_control
+                'is_control': is_control,
+                'req_level': req_level
             },
             'body': message
         }

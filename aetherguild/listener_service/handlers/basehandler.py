@@ -3,8 +3,7 @@
 
 def has_level(level):
     """ Checks if user has required userlevel
-    :param level:
-    :return:
+    :param level: Required userlevel
     """
     def _inner_has_privileges(method):
         def inner(instance, *args, **kwargs):
@@ -14,6 +13,17 @@ def has_level(level):
                 instance.send_error(error_code=403, error_msg="Forbidden")
         return inner
     return _inner_has_privileges
+
+
+def is_authenticated(method):
+    """ Checks if user is authenticated
+    """
+    def inner(instance, *args, **kwargs):
+        if instance.session.user is not None:
+            method(instance, *args, **kwargs)
+        else:
+            instance.send_error(error_code=403, error_msg="Forbidden")
+    return inner
 
 
 class BaseHandler(object):
@@ -43,7 +53,7 @@ class BaseHandler(object):
             connection_id=self.connection_id,
             is_control=is_control)
 
-    def broadcast(self, message, is_control=False, avoid_self=False):
+    def broadcast(self, message, is_control=False, avoid_self=False, req_level=0):
         assert type(message) == dict, "Message type must be dict"
         message.setdefault('route', self.full_route)
         self.mq.publish(
@@ -51,7 +61,8 @@ class BaseHandler(object):
             connection_id=self.connection_id,
             broadcast=True,
             is_control=is_control,
-            avoid_self=avoid_self)
+            avoid_self=avoid_self,
+            req_level=req_level)
 
     def send_error(self, error_code, error_msg):
         """ Helper for sending standard error packet to the web client
@@ -74,4 +85,10 @@ class BaseHandler(object):
             'error': False,
             'payload': payload
         })
+
+    def send_control(self, payload):
+        """ Sens a control message to socket server
+        :param payload: Message contents
+        """
+        self.send(payload, is_control=True)
 

@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from aetherguild.listener_service.tables import User, Session
 from aetherguild.listener_service.session import UserSession
-from basehandler import BaseHandler
+from basehandler import BaseHandler, is_authenticated
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class AuthHandler(BaseHandler):
             self.db.commit()
 
             # Send control packet for the socket server
-            self.send({'session_key': key}, is_control=True)
+            self.send({'session_key': key, 'level': user.level}, is_control=True)
 
             # Send authentication successful packet to the web client
             self.send_message({
@@ -52,6 +52,13 @@ class AuthHandler(BaseHandler):
             self.send_error(401, "Wrong username and/or password")
             log.warning("Login failed for user %s", username)
 
+    @is_authenticated
+    def logout(self, track_route, message):
+        self.session.invalidate()
+        self.send_control({'loggedout': True})
+        self.send_message({'loggedout': True})
+        log.info("Login OK for user %s", self.session.user.username)
+
     def authenticate(self, track_route, message):
         key = message['data']['session_key']
         user_session = UserSession(self.db, key)
@@ -59,7 +66,7 @@ class AuthHandler(BaseHandler):
             user_session.update()
 
             # Send control packet for the socket server
-            self.send({'session_key': key}, is_control=True)
+            self.send({'session_key': key, 'level': user_session.user.level}, is_control=True)
 
             # Send authentication successful packet to the web client
             self.send_message({
@@ -73,6 +80,7 @@ class AuthHandler(BaseHandler):
         # If we fail here, it's fine. An exception handler in upwards takes care of the rest.
         cbs = {
             'login': self.login,
+            'logout': self.logout,
             'authenticate': self.authenticate
         }
         cbs[track_route.pop(0)](track_route, message)
