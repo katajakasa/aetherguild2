@@ -21,7 +21,7 @@ DATABASE_CONFIG = 'mysql+pymysql://<username>:<password>@localhost/<database>?ch
 # 1. rabbitmqctl add_user <username> <password>
 # 2. rabbitmqctl add_vhost aetherguild2
 # 3. rabbitmqctl set_permissions -p aetherguild2 <username> ".*" ".*" ".*"
-MQ_CONFIG = 'amqp://aetherguild2:guest@localhost:5672/aether/'
+MQ_CONFIG = 'amqp://<username>:<password>@localhost:5672/aetherguild2/'
 
 # Logging level
 # 0 = DEBUG
