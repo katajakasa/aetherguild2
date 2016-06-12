@@ -55,7 +55,11 @@ Response (server -> client), failure:
 }
 ```
 
-### 2.1. Login
+Possible response error codes:
+* 500: Server error
+* 401: Login failure; need to authenticate
+
+### 2.1. Authenticate
 
 Requests the server to authenticate the client with a session key. When a valid session key is  supplied,
 returns session key & user data and sets the connection to authenticated state.
@@ -105,3 +109,8 @@ Response (server -> client), failure:
     }
 }
 ```
+
+Possible response error codes:
+* 500: Server error
+* 401: Login failure; need to authenticate
+
