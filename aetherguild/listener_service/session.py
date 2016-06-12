@@ -32,6 +32,7 @@ class UserSession(object):
                 self.user = User.get_one(db_session, id=self.session.user)
             except NoResultFound:
                 Session.delete(db_session, session_key=session_key)
+                db_session.commit()
                 self.session = None
 
     def is_valid(self):
@@ -48,7 +49,9 @@ class UserSession(object):
     def invalidate(self):
         if self.session:
             Session.delete(self.db, id=self.session.id)
+            self.db.commit()
 
     def update(self):
         if self.session:
             self.db.query(Session).filter_by(id=self.session.id).update({'activity_at': datetime.utcnow()})
+            self.db.commit()

@@ -5,6 +5,7 @@ from copy import copy
 
 from handlers.authhandler import AuthHandler
 from handlers.pinghandler import PingHandler
+from handlers.forumhandler import ForumHandler
 from session import UserSession
 
 log = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class MessageRouter(object):
         self.handlers = {
             'auth': AuthHandler,
             'ping': PingHandler,
+            'forum': ForumHandler,
             None: None
         }
 
