@@ -30,11 +30,11 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     log.info("Starting MQ listener")
 
-    db_session = sessionmaker()
+    db_connection = sessionmaker()
     engine = create_engine(config.DATABASE_CONFIG, pool_recycle=3600)
-    db_session.configure(bind=engine)
+    db_connection.configure(bind=engine)
 
-    consumer = Consumer(db_session)
+    consumer = Consumer(db_connection)
     try:
         consumer.handle()
     except KeyboardInterrupt:

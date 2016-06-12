@@ -12,20 +12,21 @@ Website project for https://aetherguild.net
 
 ## 2. Packet formats
 
-### 2.1. Authentication
+### 2.1. Login
 
 Requests the server to authenticate the client with username and password. When correct user
-credentials are supplied, returns session key and sets the connection to authenticated state.
+credentials are supplied, returns session key & user data and sets the connection to authenticated state.
 
 On failure, a standard error packet is returned.
 
 Request (client -> server):
 ```
 {
-    'type': 'login',
-    'payload': {
-        'username': '<username>',
-        'password': '<password>'
+    'route': 'auth.login',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'username': <str Username>,
+        'password': <str Password>
     }
 }
 ```
@@ -33,10 +34,11 @@ Request (client -> server):
 Response (server -> client), success:
 ```
 {
-    'type': 'login',
+    'type': 'auth.login',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
-    'payload': {
-        'session_key': '<session_key>',
+    'data': {
+        'session_key': <str Session key>,
     }
 }
 ```
@@ -44,11 +46,64 @@ Response (server -> client), success:
 Response (server -> client), failure:
 ```
 {
-    'type': 'login',
+    'type': 'auth.login',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': true,
-    'payload': {
-        'error_code': <error code>,
-        'error_message': '<error message>',
+    'data': {
+        'error_code': <int Error code>,
+        'error_message': <str Error message>,
+    }
+}
+```
+
+### 2.1. Login
+
+Requests the server to authenticate the client with a session key. When a valid session key is  supplied,
+returns session key & user data and sets the connection to authenticated state.
+
+On failure, a standard error packet is returned.
+
+Request (client -> server):
+```
+{
+    'route': 'auth.authenticate',
+    'receipt': <variable Receipt ID>,  // Optional
+    'data': {
+        'session_key': <str Session key>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'type': 'auth.authenticate',
+    'receipt': <variable Receipt ID>, // Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'session_key': '<str Session key>',
+        'user': {
+            'id': <int User ID>,
+            'username': <str Username>,
+            'nickname': <str User nickname>,
+            'level': <int User level>,
+            'active': <bool Is user active>,
+            'created_at': <str User creation timestamp>,
+            'last_contact': <str User last contact timestamp>
+        }
+    }
+}
+```
+
+Response (server -> client), failure:
+```
+{
+    'type': 'auth.authenticate',
+    'receipt': <variable Receipt ID>, // Receipt ID, if one was supplied on request
+    'error': true,
+    'data': {
+        'error_code': <int Error code>,
+        'error_message': <str Error message>,
     }
 }
 ```

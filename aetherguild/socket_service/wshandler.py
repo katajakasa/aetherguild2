@@ -16,9 +16,13 @@ class WsHandler(WebSocketHandler):
     def __init__(self, application, request, **kwargs):
         super(WsHandler, self).__init__(application, request, **kwargs)
         self.id = None
+        self.session_key = None
 
     def check_origin(self, origin):
-        return True
+        if config.DEBUG:
+            return True
+        else:
+            return super(WsHandler, self).check_origin(origin)
 
     def open(self):
         """ Handler for opened websocket connections """
@@ -27,7 +31,11 @@ class WsHandler(WebSocketHandler):
         log.info("Sock: Connection opened (%s)", self.id)
 
     def handle_control_packet(self, message):
-        pass
+        route = message['route']
+        if route == 'auth.authenticate' or route == 'auth.login':
+            self.session_key = message['session_key']
+        elif route == 'auth.logout':
+            self.session_key = None
 
     def on_message(self, message):
         """ Handler for messages coming from websocket """
@@ -40,7 +48,8 @@ class WsHandler(WebSocketHandler):
         # Publish our data to outgoing MQ pipe
         publish_data = {
             'head': {
-                'connection_id': self.id
+                'connection_id': self.id,
+                'session_key': self.session_key
             },
             'body': decoded_data
         }

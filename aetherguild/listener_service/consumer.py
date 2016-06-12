@@ -5,15 +5,14 @@ import pika
 import json
 
 from aetherguild import config
-from messages import MessageHandler
+from router import MessageRouter
 
 log = logging.getLogger(__name__)
 
 
 class Consumer(object):
-    def __init__(self, db_session):
-        self.db_session = db_session
-        self.message_handler = MessageHandler(db_session, self)
+    def __init__(self, db_connection):
+        self.router = MessageRouter(db_connection, self)
         self.connection = pika.BlockingConnection(pika.URLParameters(config.MQ_CONFIG))
         self.channel = self.connection.channel()
 
@@ -54,12 +53,14 @@ class Consumer(object):
         """
         for method_frame, properties, body in self.channel.consume(config.MQ_TO_LISTENER):
             log.info(u"MQ: Received %s", method_frame.delivery_tag)
+            log.info(u"MQ: Queue %s => %s", config.MQ_TO_LISTENER, body)
             try:
                 data = json.loads(body)
-                log.debug(u"MQ: Queue %s => %s", config.MQ_TO_LISTENER, data)
-                connection_id = data['head']['connection_id']
-                message_data = data['body']
-                self.message_handler.handle(connection_id, message_data)
+                head = data['head']
+                body = data['body']
+                connection_id = head['connection_id']
+                session_key = head.get('session_key')
+                self.router.handle(connection_id, session_key, body)
                 self.channel.basic_ack(method_frame.delivery_tag)
                 log.info(u"MQ: ACK %s", method_frame.delivery_tag)
             except KeyboardInterrupt:
