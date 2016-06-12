@@ -32,7 +32,7 @@ MQ_CONFIG = 'amqp://aetherguild2:guest@localhost:5672/aether/'
 LOG_LEVEL = 1
 
 # Do not change unless you know what you are doing
-PUBLIC_PATH = os.path.join(BASEDIR, "frontend")
+PUBLIC_PATH = os.path.join(BASEDIR, "target")
 MQ_EXCHANGE = '/exchange/direct'
 MQ_TO_LISTENER = '/queue/to_listener'
 MQ_FROM_LISTENER = '/queue/from_listener'
