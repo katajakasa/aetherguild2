@@ -34,9 +34,8 @@ Request (client -> server):
 Response (server -> client), success:
 ```
 {
-    'type': 'auth.login',
+    'route': 'auth.login',
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
-    'error': false,
     'data': {
         'session_key': <str Session key>,
     }
@@ -46,7 +45,7 @@ Response (server -> client), success:
 Response (server -> client), failure:
 ```
 {
-    'type': 'auth.login',
+    'route': 'auth.login',
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': true,
     'data': {
@@ -77,9 +76,8 @@ Request (client -> server):
 Response (server -> client), success:
 ```
 {
-    'type': 'auth.authenticate',
+    'route': 'auth.authenticate',
     'receipt': <variable Receipt ID>, // Receipt ID, if one was supplied on request
-    'error': false,
     'data': {
         'session_key': '<str Session key>',
         'user': {
@@ -98,7 +96,7 @@ Response (server -> client), success:
 Response (server -> client), failure:
 ```
 {
-    'type': 'auth.authenticate',
+    'route': 'auth.authenticate',
     'receipt': <variable Receipt ID>, // Receipt ID, if one was supplied on request
     'error': true,
     'data': {
