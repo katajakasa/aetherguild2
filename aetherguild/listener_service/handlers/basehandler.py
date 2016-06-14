@@ -71,24 +71,24 @@ class BaseHandler(object):
         """
         self.send({
             'error': True,
-            'payload': {
+            'data': {
                 'error_msg': error_msg,
                 'error_code': error_code,
             }
         })
 
-    def send_message(self, payload):
+    def send_message(self, data):
         """ Helper for sending a standard message packet to the web client
-        :param payload: Message contents
+        :param data: Message contents
         """
         self.send({
             'error': False,
-            'payload': payload
+            'data': data
         })
 
-    def send_control(self, payload):
+    def send_control(self, data):
         """ Sens a control message to socket server
-        :param payload: Message contents
+        :param data: Message contents
         """
-        self.send(payload, is_control=True)
+        self.send(data, is_control=True)
 
