@@ -30,13 +30,13 @@ class ModelFormatMixin(object):
 class User(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
-    username = Column(String(32), unique=True)
-    password = Column(String(256))
-    nickname = Column(String(32))
-    level = Column(Integer, default=1)
-    active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    last_contact = Column(DateTime(timezone=True), default=datetime.utcnow)
+    username = Column(String(32), unique=True, nullable=False)
+    password = Column(String(256), nullable=False)
+    nickname = Column(String(32), nullable=False)
+    level = Column(Integer, default=1, nullable=False)
+    active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    last_contact = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     def serialize(self):
         return {
@@ -53,10 +53,10 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
 class Session(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "session"
     id = Column(Integer, primary_key=True)
-    session_key = Column(String(32), unique=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    activity_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    user = Column(ForeignKey('user.id'))
+    user = Column(ForeignKey('user.id'), nullable=False)
+    session_key = Column(String(32), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    activity_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     def serialize(self):
         return {
@@ -70,9 +70,9 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
 class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "news_item"
     id = Column(Integer, primary_key=True)
-    alias = Column(String(32))
-    post = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    alias = Column(String(32), nullable=False)
+    post = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     def serialize(self):
         return {
@@ -86,8 +86,8 @@ class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumSection(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_section"
     id = Column(Integer, primary_key=True)
-    title = Column(String(64))
-    sort_index = Column(Integer, default=0)
+    title = Column(String(64), nullable=False)
+    sort_index = Column(Integer, default=0, nullable=False)
 
     def serialize(self):
         return {
@@ -100,12 +100,11 @@ class ForumSection(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_board"
     id = Column(Integer, primary_key=True)
-    section = Column(ForeignKey('forum_section.id'))
-    title = Column(String(64))
-    description = Column(Text)
-    min_read_level = Column(Integer, default=0)
-    min_write_level = Column(Integer, default=0)
-    sort_index = Column(Integer, default=0)
+    section = Column(ForeignKey('forum_section.id'), nullable=False)
+    title = Column(String(64), nullable=False)
+    description = Column(Text, nullable=False)
+    req_level = Column(Integer, default=0, nullable=False)
+    sort_index = Column(Integer, default=0, nullable=False)
 
     def serialize(self):
         return {
@@ -113,8 +112,7 @@ class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
             'section': self.section,
             'title': self.title,
             'description': self.description,
-            'min_read_level': self.min_read_level,
-            'min_write_level': self.min_write_level,
+            'req_level': self.req_level,
             'sort_index': self.sort_index
         }
 
@@ -122,13 +120,13 @@ class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_thread"
     id = Column(Integer, primary_key=True)
-    board = Column(ForeignKey('forum_board.id'))
-    user = Column(ForeignKey('user.id'))
-    title = Column(String(64))
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    views = Column(Integer, default=0)
-    sticky = Column(Boolean, default=False)
-    closed = Column(Boolean, default=False)
+    board = Column(ForeignKey('forum_board.id'), nullable=False)
+    user = Column(ForeignKey('user.id'), nullable=False)
+    title = Column(String(64), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    views = Column(Integer, default=0, nullable=False)
+    sticky = Column(Boolean, default=False, nullable=False)
+    closed = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
@@ -146,10 +144,10 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_post"
     id = Column(Integer, primary_key=True)
-    thread = Column(ForeignKey('forum_thread.id'))
-    user = Column(ForeignKey('user.id'))
-    message = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    thread = Column(ForeignKey('forum_thread.id'), nullable=False)
+    user = Column(ForeignKey('user.id'), nullable=False)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     def serialize(self):
         return {
@@ -164,10 +162,10 @@ class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumPostEdit(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_edit"
     id = Column(Integer, primary_key=True)
-    post = Column(ForeignKey('forum_post.id'))
-    user = Column(ForeignKey('user.id'))
-    message = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    post = Column(ForeignKey('forum_post.id'), nullable=False)
+    user = Column(ForeignKey('user.id'), nullable=False)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     def serialize(self):
         return {
@@ -182,9 +180,9 @@ class ForumPostEdit(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumLastRead(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_last_read"
     id = Column(Integer, primary_key=True)
-    thread = Column(ForeignKey('forum_thread.id'))
-    user = Column(ForeignKey('user.id'))
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    thread = Column(ForeignKey('forum_thread.id'), nullable=False)
+    user = Column(ForeignKey('user.id'), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     UniqueConstraint('thread', 'user', name='unique_thread_user_constraint')
 
     def serialize(self):

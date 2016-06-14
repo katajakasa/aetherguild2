@@ -12,12 +12,12 @@ from sqlalchemy import create_engine
 
 
 def add_board(a):
-    if not a.title or len(a.title) > 64 or len(a.title) < 4:
-        print("Board title must be between 4 and 32 characters long")
+    if not a.title or len(a.title) > 64 or len(a.title) < 1:
+        print("Board title must be between 1 and 32 characters long")
         return 1
 
-    if not a.description or len(a.description) < 4:
-        print("Board description must be at least 4 characters long.")
+    if not a.description or len(a.description) < 1:
+        print("Board description must be at least 1 characters long.")
         return 1
 
     s = db_session()
@@ -32,8 +32,7 @@ def add_board(a):
     board.title = a.title
     board.section = section.id
     board.description = a.description
-    board.min_write_level = a.min_write_level
-    board.min_read_level = a.min_read_level
+    board.req_level = a.reqlevel
     board.sort_index = a.sortindex
     s.add(board)
     s.commit()
@@ -71,8 +70,7 @@ def list_boards(a):
         'section': 'Section',
         'title': 'Title',
         'description': 'Description',
-        'min_read_level': 'Min. R. level',
-        'min_write_level': 'Min. W. level',
+        'req_level': 'Req. User Level',
         'sort_index': 'Sort Index'
     }
     print(tabulate.tabulate(boards, headers, tablefmt="grid"))
@@ -89,8 +87,7 @@ if __name__ == '__main__':
     parser.add_argument('--title', type=str, help='Title')
     parser.add_argument('--description', type=str, help='Description')
     parser.add_argument('--section', type=int, help='Section ID')
-    parser.add_argument('--min_read_level', type=int, help='Min Read Level')
-    parser.add_argument('--min_write_level', type=int, help='Min Write Level')
+    parser.add_argument('--reqlevel', type=int, help='Required user level')
     parser.add_argument('--sortindex', type=int, help='Sort index', default=0)
     args = parser.parse_args()
 

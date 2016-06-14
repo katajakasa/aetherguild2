@@ -40,13 +40,17 @@ class UserSession(object):
         return self.session is not None
 
     def has_level(self, level):
-        if level == LEVEL_GUEST:
-            return True
-        if self.user is not None:
-            return level <= self.user.level
-        return False
+        """ Checks if the user has required userlevel """
+        return self.get_level() >= level
+
+    def get_level(self):
+        """ Returns the level of the user for this session """
+        if not self.user:
+            return LEVEL_GUEST
+        return self.user.level
 
     def invalidate(self):
+        """ Invalidates the current session """
         if self.session:
             Session.delete(self.db, id=self.session.id)
             self.db.commit()

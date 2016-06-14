@@ -11,8 +11,8 @@ from sqlalchemy import create_engine
 
 
 def add_section(a):
-    if not a.title or len(a.title) > 64 or len(a.title) < 4:
-        print("Section title must be between 4 and 32 characters long")
+    if not a.title or len(a.title) > 64 or len(a.title) < 1:
+        print("Section title must be between 1 and 32 characters long")
         return 1
 
     s = db_session()
