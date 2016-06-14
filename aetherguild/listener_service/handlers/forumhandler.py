@@ -16,9 +16,23 @@ class ForumHandler(BaseHandler):
             out.append(section.serialize())
         self.send_message({'sections': out})
 
+    def get_boards(self, track_route, message):
+        payload = message.get('payload', {})
+        section_id = payload.get('section', None)
+        if section_id:
+            boards = ForumBoard.get_many(self.db, section=section_id)
+        else:
+            boards = ForumBoard.get_many(self.db)
+
+        out = []
+        for board in boards:
+            out.append(board.serialize())
+        self.send_message({'boards': out})
+
     def handle(self, track_route, message):
         # If we fail here, it's fine. An exception handler in upwards takes care of the rest.
         cbs = {
             'get_sections': self.get_sections,
+            'get_boards': self.get_boards
         }
         cbs[track_route.pop(0)](track_route, message)

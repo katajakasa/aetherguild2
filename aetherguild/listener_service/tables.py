@@ -103,8 +103,8 @@ class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
     section = Column(ForeignKey('forum_section.id'))
     title = Column(String(64))
     description = Column(Text)
-    min_read_level = Column(Integer)
-    min_write_level = Column(Integer)
+    min_read_level = Column(Integer, default=0)
+    min_write_level = Column(Integer, default=0)
     sort_index = Column(Integer, default=0)
 
     def serialize(self):

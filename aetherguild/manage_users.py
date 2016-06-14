@@ -76,6 +76,7 @@ def del_user(a):
 
     s = db_session()
     User.delete(s, username=a.username)
+    s.commit()
     s.close()
 
     print("User {} deleted".format(a.username))
