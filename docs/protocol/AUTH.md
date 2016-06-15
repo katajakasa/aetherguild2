@@ -1,4 +1,4 @@
-# Protocol documentation
+# Auth module protocol docs
 
 ## 1. Login
 
@@ -133,48 +133,3 @@ Response (server -> client), success:
 
 Possible response error codes:
 * 403: Forbidden
-
-## 4. Get forum sections and boards as a tree
-
-Requests the server to send forum sections and boards as an easily iterable tree structure. Only sections that have
-viewable boards are listed, and only boards that the user has rights to are shown.
-
-Request (client -> server):
-```
-{
-    'route': 'forum.get_combined_boards',
-    'receipt': <variable Receipt ID>,  # Optional
-}
-```
-
-Response (server -> client), success:
-```
-{
-    'route': 'forum.get_combined_boards',
-    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
-    'error': false,
-    'data': {
-        'sections': [
-        {
-            "id": <int Section ID>,
-            "sort_index": <int Sort index>,
-            "title": <str Section title>,
-            "boards": [
-            {  
-                "description": <str Board description>,
-                "title": <std Board title>,
-                "section": <int Section ID>,
-                "sort_index": <int Sort index>,
-                "req_level": <int Required user level>,
-                "id": <int Board ID>
-            },
-            {
-                <...>
-            }],
-        },
-        { 
-            <...>
-        }],
-    },
-}
-```
