@@ -8,7 +8,7 @@ from passlib.hash import pbkdf2_sha512
 from sqlalchemy.orm.exc import NoResultFound
 
 from aetherguild.listener_service.tables import User, Session
-from aetherguild.listener_service.session import UserSession
+from aetherguild.listener_service.user_session import UserSession
 from basehandler import BaseHandler, is_authenticated
 
 log = logging.getLogger(__name__)
@@ -26,7 +26,8 @@ class AuthHandler(BaseHandler):
         except NoResultFound:
             # Attempt to protect against timing attacks
             pbkdf2_sha512.verify(password, password)
-            self.send_error(401, "Wrong username and/or password")
+            self.send_error(401, u"Wrong username and/or password")
+            log.warning(u"Login failed for user %s", username)
             return
 
         # Make sure password matches
@@ -37,36 +38,41 @@ class AuthHandler(BaseHandler):
             s.user = user.id
             s.session_key = key
             self.db.add(s)
-            self.db.commit()
 
             # Send control packet for the socket server
-            self.send({'session_key': key, 'level': user.level}, is_control=True)
+            self.send_control({
+                'session_key': key,
+                'level': user.level
+            })
 
             # Send authentication successful packet to the web client
             self.send_message({
                 'session_key': key,
                 'user': user.serialize()
             })
-            log.info("Login OK for user %s", username)
+            log.info(u"Login OK for user %s", username)
         else:
-            self.send_error(401, "Wrong username and/or password")
-            log.warning("Login failed for user %s", username)
+            self.send_error(401, u"Wrong username and/or password")
+            log.warning(u"Login failed for user %s", username)
 
     @is_authenticated
     def logout(self, track_route, message):
         self.session.invalidate()
         self.send_control({'loggedout': True})
         self.send_message({'loggedout': True})
-        log.info("Logout OK for user %s", self.session.user.username)
+        log.info(u"Logout OK for user %s", self.session.user.username)
 
     def authenticate(self, track_route, message):
         key = message['data']['session_key']
         user_session = UserSession(self.db, key)
         if user_session.is_valid():
-            user_session.update()
+            user_session.close()
 
             # Send control packet for the socket server
-            self.send({'session_key': key, 'level': user_session.user.level}, is_control=True)
+            self.send_control({
+                'session_key': key,
+                'level': user_session.user.level
+            })
 
             # Send authentication successful packet to the web client
             self.send_message({
@@ -74,7 +80,7 @@ class AuthHandler(BaseHandler):
                 'user': user_session.user.serialize()
             })
         else:
-            self.send_error(401, "Invalid session key")
+            self.send_error(401, u"Invalid session key")
 
     def handle(self, track_route, message):
         # If we fail here, it's fine. An exception handler in upwards takes care of the rest.

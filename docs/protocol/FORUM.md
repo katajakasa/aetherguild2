@@ -162,11 +162,56 @@ Response (server -> client), success:
 
 ## 5. Get forum posts for thread
 
+Requests the server to send forum posts for a thread.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.get_posts',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': <int Thread ID>,
+        'start': <int Index of first result entry>,  # Optional
+        'count': <int Number of result entries>  # Optional
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.get_posts',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'posts': [
+        {
+            "id": <int Thread ID>,
+            "thread": <int Thread ID>,
+            "user": <int User ID>,
+            "message": <str Message>,
+            "created_at": <iso8601 Creation date>,
+        },
+        {
+            <...>
+        }],
+    },
+}
+```
+
+
 ## 6. Get forum post
+
+Returns a single forum post.
 
 ## 7. Upsert forum post
 
+Inserts or updates a forum post. Insert if no ID is supplied, update if id is supplied and user owns the post.
+
 ## 8. Get forum thread
+
+Returns a single forum thread.
 
 ## 9. Upsert forum thread
 
+Inserts or updates a forum thread. Insert if no ID is supplied, update if id is supplied and user owns the thread.

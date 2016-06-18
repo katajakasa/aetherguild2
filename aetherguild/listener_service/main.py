@@ -4,12 +4,10 @@ import logging
 import sys
 import signal
 
-from pika.exceptions import ConnectionClosed
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-
 from aetherguild import config
 from consumer import Consumer
+from mq_connection import MQConnection
+from db_connection import DBConnection
 
 
 if __name__ == '__main__':
@@ -32,11 +30,16 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     log.info("Starting MQ listener")
 
-    db_connection = sessionmaker()
-    engine = create_engine(config.DATABASE_CONFIG, pool_recycle=3600)
-    db_connection.configure(bind=engine)
+    # Set up DB connection and connect
+    db_connection = DBConnection()
+    db_connection.connect()
 
-    consumer = Consumer(db_connection)
+    # Set up MQ connection and connect
+    mq_connection = MQConnection()
+    mq_connection.connect()
+
+    # Create a message consumer. This handles message consumption and handling
+    consumer = Consumer(db_connection, mq_connection)
 
     def sig_handler(signal, frame):
         consumer.close()
@@ -44,8 +47,15 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, sig_handler)
     signal.signal(signal.SIGTERM, sig_handler)
 
-    consumer.handle()
+    try:
+        consumer.handle()
+    except KeyboardInterrupt:
+        pass
     consumer.close()
 
+    mq_connection.close()
+    db_connection.close()
+
     # All done. Close.
+    log.info(u"All done. Shutdown.")
 

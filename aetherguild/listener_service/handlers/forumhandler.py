@@ -2,10 +2,9 @@
 
 import logging
 from sqlalchemy import func, and_
-from basehandler import BaseHandler, has_level
+from basehandler import BaseHandler
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
-from aetherguild.listener_service.session import LEVEL_USER
 
 log = logging.getLogger(__name__)
 

@@ -4,31 +4,33 @@ import logging
 from copy import copy
 
 from handlers.authhandler import AuthHandler
-from handlers.pinghandler import PingHandler
 from handlers.forumhandler import ForumHandler
-from session import UserSession
+from user_session import UserSession
+from mq_session import MQSession
 
 log = logging.getLogger(__name__)
 
 
 class MessageRouter(object):
-    def __init__(self, db_connection, mq_session):
+    def __init__(self, db_connection, mq_connection):
         self.db_connection = db_connection
-        self.mq_session = mq_session
+        self.mq_connection = mq_connection
         self.handlers = {
             'auth': AuthHandler,
-            'ping': PingHandler,
             'forum': ForumHandler,
             None: None
         }
 
-    def handle(self, connection_id, session_key, message):
-        if len(message['route']) > 32:
+    def handle(self, head, body):
+        route = body['route']
+        if len(route) > 32:
             log.warning("Route field was too long!")
             return
-        full_route = copy(message['route'])
+        connection_id = head['connection_id']
+        session_key = head.get('session_key')
+        full_route = copy(body['route'])
         track_route = full_route.split('.')
-        receipt_id = copy(message.get('receipt'))
+        receipt_id = copy(body.get('receipt'))
 
         # Select a correct handler according to the first entry in the route
         r = track_route.pop(0)
@@ -40,19 +42,29 @@ class MessageRouter(object):
 
         # If handler for the route was found, use it.
         if handler:
-            # 1. Make a new database session for the use of this handler
-            # 2. Create an object of the handler and pass some important vars, then call its handle method
-            # 3. If client is expecting a response to receipt and we fail, send a response just in case
-            # 4. Update user session data and Make sure database session is closed (!!!)
             log.info(u"MessageRouter: Packet route %s => %s", full_route, handler.__name__)
-            db_session = self.db_connection()
+
+            # Start a database session and transaction
+            db_session = self.db_connection.get_session()
+
+            # Start an MQ session and transaction
+            mq_session = MQSession(self.mq_connection)
+            mq_session.begin()
+
+            # Find a User session from database matching users session key
             user_session = UserSession(db_session, session_key)
+
+            # Attempt to handle operation. If success, commit transactions. If failure, send fail packet and rollback.
             try:
-                o = handler(db_session, self.mq_session, user_session, connection_id, receipt_id, full_route)
-                o.handle(track_route, message)
+                o = handler(db_session, mq_session, user_session, connection_id, receipt_id, full_route)
+                o.handle(track_route, body)
+                db_session.commit()
+                mq_session.commit()
             except:
+                db_session.rollback()
+                mq_session.rollback()
                 if receipt_id:
-                    self.mq_session.publish({
+                    self.mq_connection.publish({
                         'error': True,
                         'receipt': receipt_id,
                         'route': full_route,
@@ -63,5 +75,6 @@ class MessageRouter(object):
                     }, connection_id=connection_id)
                 raise
             finally:
-                user_session.update()
+                user_session.close()
                 db_session.close()
+                mq_session.close()

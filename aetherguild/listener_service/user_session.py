@@ -29,10 +29,9 @@ class UserSession(object):
         # Find user associated with the session. If no user exists, then invalidate the session too.
         if self.session:
             try:
-                self.user = User.get_one(db_session, id=self.session.user)
+                self.user = User.get_one(db_session, id=self.session.user, deleted=False)
             except NoResultFound:
                 Session.delete(db_session, session_key=session_key)
-                db_session.commit()
                 self.session = None
 
     def is_valid(self):
@@ -53,9 +52,8 @@ class UserSession(object):
         """ Invalidates the current session """
         if self.session:
             Session.delete(self.db, id=self.session.id)
-            self.db.commit()
 
-    def update(self):
+    def close(self):
+        """ Close session object """
         if self.session:
             self.db.query(Session).filter_by(id=self.session.id).update({'activity_at': datetime.utcnow()})
-            self.db.commit()
