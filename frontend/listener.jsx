@@ -3,6 +3,7 @@ class Listener {
     constructor(address) {
         this.address = address
         this.waiting = {};
+        this.listening = {};
         this.sock = null;
         this.should_close = false;
         this.reconnect_wait = 5000;
@@ -105,6 +106,7 @@ class Listener {
     on_message(event) {
         var msg = JSON.parse(event.data);
         if('receipt' in msg) {
+            // Message has a receipt, try to resolve a Promise
             if(msg.receipt in this.waiting) {
                 if(msg.error) {
                     this.reject_waiting_promise(msg.receipt, msg.data.error_message, msg.data.error_code);
@@ -112,11 +114,16 @@ class Listener {
                     this.resolve_waiting_promise(msg.receipt, msg.data);
                 }
             } else {
-                console.error('Couldn\'t resolve receipt ' + msg.receipt);
+                console.error('Unexpected receipt ' + msg.receipt);
             }
         } else {
-            // This is a broadcast message
-            console.log('Caught broadcast: ' + event.data);
+            // No receipt, this is a broadcast message
+            if(msg.route in this.listening) {
+                var callbacks = this.listening[msg.route];
+                for(var i = 0; i < callbacks.length; i++) {
+                    callbacks[i](msg.route, msg.data);
+                }
+            }
         }
     }
 
@@ -146,6 +153,34 @@ class Listener {
         });
     }
 
+    add_listener(route, callback) {
+        /**
+         * Adds a listener function for broadcast messages identified by route
+         * @param {string} route - Routing tag to listen for
+         * @param {function} callback - Callback function
+         */
+        if(!(route in this.listening)) {
+            this.listening[route] = [];
+        }
+        this.listening[route].push(callback);
+    }
+
+    cancel_listener(route, callback) {
+        /**
+         * Cancel a broadcast message listener
+         * @param {string} route - Routing tag
+         * @param {function} callback - Callback function
+         * @param {boolean} Was the listener removed succesfully
+         */
+        for(var i = 0; i < this.listening[route].length; i++) {
+            if(this.listening[route][i] === callback) {
+                this.listening[route].splice(i, 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
     send(route, receipt, data) {
         /**
          * Send a message through websocket to the server
@@ -172,6 +207,8 @@ class Listener {
             this.sock.close();
             this.sock = null;
         }
+        this.listening = {};
+        this.waiting = {};
     }
 
 }
