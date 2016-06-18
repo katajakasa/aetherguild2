@@ -37,9 +37,9 @@ class MQConnection(object):
         self.connection.add_on_close_callback(self.on_connection_closed)
         self.connection.channel(self.on_channel_open)
 
-    def on_connection_error(self):
-        log.info(u"MQ: Failed to connect to AMQP server")
-        self.connection.add_timeout(5, self.connect)
+    def on_connection_error(self, connection, error_message=None):
+        log.info(u"MQ: Connection error: %s", error_message)
+        self.on_connection_closed(connection, 0, error_message)
 
     def on_connection_closed(self, connection, reply_code, reply_text):
         if self._closing:
@@ -63,6 +63,7 @@ class MQConnection(object):
     def on_channel_open(self, channel):
         log.info(u'MQ: Channel opened.')
         self.channel = channel
+        self.channel.confirm_delivery()
         self.channel.exchange_declare(self.on_exchange_ok, config.MQ_EXCHANGE, 'direct', durable=True)
 
     # ------------------------ Exchanges ------------------------

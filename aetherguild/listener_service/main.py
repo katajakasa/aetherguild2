@@ -2,7 +2,9 @@
 
 import logging
 import sys
+import signal
 
+from pika.exceptions import ConnectionClosed
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -35,10 +37,14 @@ if __name__ == '__main__':
     db_connection.configure(bind=engine)
 
     consumer = Consumer(db_connection)
-    try:
-        consumer.handle()
-    except KeyboardInterrupt:
-        pass
+
+    def sig_handler(signal, frame):
+        consumer.close()
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+
+    consumer.handle()
     consumer.close()
 
     # All done. Close.

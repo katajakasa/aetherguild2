@@ -22,7 +22,7 @@ class AuthHandler(BaseHandler):
 
         # Find the user by username, fail with error if not found
         try:
-            user = User.get_one(self.db, username=username, active=True)
+            user = User.get_one(self.db, username=username, deleted=False)
         except NoResultFound:
             # Attempt to protect against timing attacks
             pbkdf2_sha512.verify(password, password)
@@ -57,7 +57,7 @@ class AuthHandler(BaseHandler):
         self.session.invalidate()
         self.send_control({'loggedout': True})
         self.send_message({'loggedout': True})
-        log.info("Login OK for user %s", self.session.user.username)
+        log.info("Logout OK for user %s", self.session.user.username)
 
     def authenticate(self, track_route, message):
         key = message['data']['session_key']

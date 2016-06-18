@@ -3,6 +3,8 @@
 import logging
 import pika
 import json
+import time
+from pika.exceptions import ConnectionClosed
 
 from aetherguild import config
 from router import MessageRouter
@@ -13,8 +15,16 @@ log = logging.getLogger(__name__)
 class Consumer(object):
     def __init__(self, db_connection):
         self.router = MessageRouter(db_connection, self)
+        self.connection = None
+        self.channel = None
+        self._run = True
+
+    def _connect(self):
+        """ Attempts to connect to the AMQP server
+        """
         self.connection = pika.BlockingConnection(pika.URLParameters(config.MQ_CONFIG))
         self.channel = self.connection.channel()
+        self.channel.confirm_delivery()
 
     def publish(self, message, connection_id=None, broadcast=False, avoid_self=False, is_control=False, req_level=0):
         """ Publish a message to the outgoing queue
@@ -44,7 +54,7 @@ class Consumer(object):
                 delivery_mode=1))
         log.info(u"MQ: Queue %s <= %s", config.MQ_FROM_LISTENER, publish_data)
 
-    def handle(self):
+    def _listen(self):
         """ Handle incoming packets from the MQ queue
 
         Accept any incoming packets from the MQ queue. If the packet looks good, handle it and ACK it. This removes
@@ -71,6 +81,20 @@ class Consumer(object):
                 self.channel.basic_nack(method_frame.delivery_tag, requeue=False)
                 log.error(u"MQ: NACK %s", method_frame.delivery_tag, exc_info=e)
 
+    def handle(self):
+        """ Connects to the server and runs the listener. Reconnects if necessary.
+        """
+        while self._run:
+            try:
+                self._connect()
+                self._listen()
+            except ConnectionClosed as e:
+                if self._run:
+                    time.sleep(5)
+
     def close(self):
+        """ Closes connection to the server
+        """
+        self._run = False
         self.channel.close()
         self.connection.close()

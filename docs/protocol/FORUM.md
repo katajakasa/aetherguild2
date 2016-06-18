@@ -119,6 +119,47 @@ Response (server -> client), success:
 
 ## 4. Get forum threads for board
 
+Requests the server to send forum threads for a board.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.get_threads',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': <int Board ID>,
+        'start': <int Index of first result entry>,  # Optional
+        'count': <int Number of result entries>  # Optional
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.get_threads',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'threads': [
+        {
+            "id": <int Thread ID>,
+            "board": <int Board ID>,
+            "user": <int User ID>,
+            "title": <str Section title>,
+            "created_at": <iso8601 Creation date>,
+            "views": <int Number of views>,
+            "sticky": <bool Is thread sticky>,
+            "closed": <bool Is thread closed>
+        },
+        {
+            <...>
+        }],
+    },
+}
+```
+
+
 ## 5. Get forum posts for thread
 
 ## 6. Get forum post

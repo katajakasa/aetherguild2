@@ -14,6 +14,10 @@ class ModelHelperMixin(object):
         return session.query(cls).filter_by(**kwargs).one()
 
     @classmethod
+    def get_one_or_none(cls, session, **kwargs):
+        return session.query(cls).filter_by(**kwargs).one_or_none()
+
+    @classmethod
     def get_many(cls, session, **kwargs):
         return session.query(cls).filter_by(**kwargs).all()
 
@@ -34,9 +38,9 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     password = Column(String(256), nullable=False)
     nickname = Column(String(32), nullable=False)
     level = Column(Integer, default=1, nullable=False)
-    active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     last_contact = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
@@ -44,7 +48,6 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
             'username': self.username,
             'nickname': self.nickname,
             'level': self.level,
-            'active': self.active,
             'created_at': arrow.get(self.created_at).isoformat(),
             'last_contact': arrow.get(self.last_contact).isoformat()
         }
@@ -73,6 +76,7 @@ class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     alias = Column(String(32), nullable=False)
     post = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
@@ -88,6 +92,7 @@ class ForumSection(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     title = Column(String(64), nullable=False)
     sort_index = Column(Integer, default=0, nullable=False)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
@@ -105,6 +110,7 @@ class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
     description = Column(Text, nullable=False)
     req_level = Column(Integer, default=0, nullable=False)
     sort_index = Column(Integer, default=0, nullable=False)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
@@ -127,6 +133,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     views = Column(Integer, default=0, nullable=False)
     sticky = Column(Boolean, default=False, nullable=False)
     closed = Column(Boolean, default=False, nullable=False)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
@@ -148,6 +155,7 @@ class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
     user = Column(ForeignKey('user.id'), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
         return {
