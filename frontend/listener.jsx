@@ -115,20 +115,18 @@ class Listener {
 }
 
 
-var g = new Listener("ws://localhost:8000/ws").connect().then(function(obj) {
+new Listener("ws://localhost:8000/ws").connect().then(function(obj) {
     obj.listener.request(
         "auth.login", {"username": "tuomas", "password": "test1234"}
     ).then(function(obj) {
         console.log(obj.data);
-        obj.listener.request(
-            "auth.logout", {}
-        ).then(function(obj) {
-            console.log(obj.data);
-            obj.listener.close();
-        }).catch(function(obj) {
-            console.log("Error: " + obj.error_str);
-            obj.listener.close();
-        });
+        return obj.listener.request("forum.get_combined_boards", {});
+    }).then(function(obj) {
+        console.log(obj.data);
+        return obj.listener.request("auth.logout", {});
+    }).then(function(obj) {
+        console.log(obj.data);
+        obj.listener.close();
     }).catch(function(obj) {
         console.log("Error: " + obj.error_str);
         obj.listener.close();
