@@ -5,6 +5,7 @@ class Listener {
         this.waiting = {};
         this.should_close = false;
         this.reconnect_wait = 5000;
+        this.receipt_wait = 15000;
         this.id = 1;
     }
 
@@ -17,7 +18,8 @@ class Listener {
         return new Promise(function(resolve, reject) {
             listener.sock = new WebSocket(listener.address);
             listener.sock.onopen = function() {
-                resolve();
+                console.log("Connected to " + listener.address);
+                resolve({listener: listener});
             };
             listener.sock.onclose = function(event) {
                 listener.on_close(event);
@@ -35,7 +37,7 @@ class Listener {
         console.log("Socket closed.");
         if(this.should_close === false) {
             console.log("Attempting to reconnect in " + this.reconnect_wait + " milliseconds.");
-            setTimeout(this.connect, this.reconnect_wait);
+            window.setTimeout(this.connect, this.reconnect_wait);
         }
     }
 
@@ -49,9 +51,12 @@ class Listener {
             var receipt = msg['receipt'];
             if(receipt in this.waiting) {
                 var cbs = this.waiting[receipt];
-                console.log("Resolved " + receipt);
-                clearTimeout(cbs['timeout']);
-                cbs['resolve'](msg);
+                delete this.waiting[receipt];
+                window.clearTimeout(cbs['timeout']);
+                cbs['resolve']({
+                    listener: this,
+                    data: msg
+                });
             } else {
                 console.error("Couldnt't resolve receipt " + receipt);
             }
@@ -65,11 +70,15 @@ class Listener {
         var receipt = this.generate_id();
         var listener = this;
         var p = new Promise(function(resolve, reject) {
-            var timeout = setTimeout(function() {
+            var timeout = window.setTimeout(function() {
                 var cbs = listener.waiting[receipt];
-                cbs['reject']("Timeout");
                 delete listener.waiting[receipt];
-            }, 15000);
+                cbs['reject']({
+                    listener: listener,
+                    error_str: "Timeout",
+                    error_code: -1
+                });
+            }, listener.receipt_wait);
             listener.waiting[receipt] = {
                 'resolve': resolve,
                 'reject': reject,
@@ -91,36 +100,37 @@ class Listener {
     close() {
         this.should_close = true;
         this.sock.close();
-        for(var key in this.waiting) {
-            if(this.waiting.hasOwnProperty(key)) {
-                var cbs = this.waiting[key];
-                clearTimeout(cbs['timeout']);
-                cbs['reject']("Listener closing");
-                delete this.waiting[key];
-            }
+        for(const key in Object.keys(this.waiting)) {
+            var cbs = this.waiting[key];
+            delete this.waiting[key];
+            window.clearTimeout(cbs['timeout']);
+            cbs['reject']({
+                listener: this,
+                error_str: "Listener closing",
+                error_code: -2
+            });
         }
     }
 
 }
 
-var listener = new Listener("ws://localhost:8000/ws");
-listener.connect().then(function() {
-    console.log("Connected!");
-    listener.request(
+
+var g = new Listener("ws://localhost:8000/ws").connect().then(function(obj) {
+    obj.listener.request(
         "auth.login", {"username": "tuomas", "password": "test1234"}
-    ).then(function(data) {
-        console.log(data);
-        listener.request(
+    ).then(function(obj) {
+        console.log(obj.data);
+        obj.listener.request(
             "auth.logout", {}
-        ).then(function(data) {
-            console.log(data);
-            listener.close();
-        }).catch(function(error) {
-            console.error("Error: " + error);
-            listener.close();
+        ).then(function(obj) {
+            console.log(obj.data);
+            obj.listener.close();
+        }).catch(function(obj) {
+            console.log("Error: " + obj.error_str);
+            obj.listener.close();
         });
-    }).catch(function(error) {
-        console.error("Error: " + error);
-        listener.close();
+    }).catch(function(obj) {
+        console.log("Error: " + obj.error_str);
+        obj.listener.close();
     });
 });
