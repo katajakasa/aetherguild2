@@ -64,7 +64,7 @@ class MessageRouter(object):
                 db_session.rollback()
                 mq_session.rollback()
                 if receipt_id:
-                    self.mq_connection.publish({
+                    mq_session.publish({
                         'error': True,
                         'receipt': receipt_id,
                         'route': full_route,

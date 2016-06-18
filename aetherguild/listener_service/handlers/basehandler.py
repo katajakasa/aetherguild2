@@ -72,7 +72,7 @@ class BaseHandler(object):
         self.send({
             'error': True,
             'data': {
-                'error_msg': error_msg,
+                'error_message': error_msg,
                 'error_code': error_code,
             }
         })
