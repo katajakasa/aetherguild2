@@ -5,9 +5,10 @@ class Listener {
         this.waiting = {};
         this.listening = {};
         this.sock = null;
-        this.should_close = false;
+        this.should_close = true;
         this.reconnect_wait = 5000;
         this.receipt_wait = 15000;
+        this.connect_timeout = null;
         this.id = 1;
     }
 
@@ -24,36 +25,51 @@ class Listener {
          * Connects to the websocket server.
          * @returns {Promise} Response
          */
-        this.should_close = false;
         var listener = this;
         return new Promise(function(resolve, reject) {
             listener.sock = new WebSocket(listener.address);
             listener.sock.onopen = function() {
                 console.log("Connected to " + listener.address);
-                resolve({listener: listener});
+                listener.should_close = false;
+                listener.sock.onclose = function(event) { listener.on_close(event); };
+                listener.sock.onmessage = function(event) { listener.on_message(event); };
+                resolve({'listener': listener});
             };
             listener.sock.onclose = function(event) {
-                listener.on_close(event);
-            };
-            listener.sock.onmessage = function(event) {
-                listener.on_message(event);
-            };
-            listener.sock.onerror = function(event) {
-                listener.on_error(event);
+                listener.reconnect(resolve);
             };
         });
     }
 
-    on_close(event) {
-        console.log("Socket closed.");
-        if(this.should_close === false) {
-            console.log("Attempting to reconnect in " + this.reconnect_wait + " milliseconds.");
-            window.setTimeout(this.connect, this.reconnect_wait);
+    reconnect(resolve) {
+        var listener = this;
+        if(listener.connect_timeout !== null) {
+            return;
         }
+        listener.connect_timeout = window.setTimeout(function() {
+            listener.connect_timeout = null;
+            listener.sock = new WebSocket(listener.address);
+            listener.sock.onopen = function() {
+                console.log("Connected to " + listener.address);
+                listener.should_close = false;
+                listener.sock.onclose = function(event) { listener.on_close(event); };
+                listener.sock.onmessage = function(event) { listener.on_message(event); };
+                if(resolve !== null) {
+                    resolve({'listener': listener});
+                }
+            };
+            listener.sock.onclose = function(event) {
+                listener.reconnect(resolve);
+            };
+        }, listener.reconnect_wait);
     }
 
-    on_error(error) {
-        console.error('Error: ' + error);
+    on_close(listener, event) {
+        console.log("Socket closed.");
+        if(this.should_close === false) {
+            console.log("Attempting to reconnect.");
+            this.reconnect(null);
+        }
     }
 
     add_waiting_promise(receipt, resolve, reject, timeout) {
@@ -137,7 +153,7 @@ class Listener {
         var receipt = this.generate_id();
         var listener = this;
         return new Promise(function(resolve, reject) {
-            if(listener.should_close === true) {
+            if(listener.sock === null) {
                 reject({
                     'listener': listener,
                     'error_str': 'Listener is closed',
@@ -238,9 +254,9 @@ q.connect().then(function(obj) {
     }).then(function(obj) {
         console.log(obj.data);
         obj.listener.cancel_route_listeners('auth.login');
-        obj.listener.close();
+
     }).catch(function(obj) {
         console.log("Error: " + obj.error_str);
-        obj.listener.close();
+
     });
 });
