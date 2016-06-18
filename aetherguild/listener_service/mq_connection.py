@@ -21,7 +21,6 @@ class MQConnection(object):
     def connect(self):
         self.connection = BlockingConnection(URLParameters(config.MQ_CONFIG))
         self.channel = self.connection.channel()
-        self.channel.confirm_delivery()
         log.info("MQ: Connected")
 
     def is_closed(self):
@@ -34,10 +33,10 @@ class MQConnection(object):
             body=json.dumps(message),
             properties=BasicProperties(
                 content_type="application/json",
-                delivery_mode=1))
+                delivery_mode=2))
 
     def consume(self):
-        return self.channel.consume(config.MQ_TO_LISTENER, inactivity_timeout=0.1)
+        return self.channel.consume(config.MQ_TO_LISTENER, no_ack=False, inactivity_timeout=0.1)
 
     def cancel_consumer(self):
         self.channel.cancel()

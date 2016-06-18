@@ -63,7 +63,6 @@ class MQConnection(object):
     def on_channel_open(self, channel):
         log.info(u'MQ: Channel opened.')
         self.channel = channel
-        self.channel.confirm_delivery()
         self.channel.exchange_declare(self.on_exchange_ok, config.MQ_EXCHANGE, 'direct', durable=True)
 
     # ------------------------ Exchanges ------------------------
