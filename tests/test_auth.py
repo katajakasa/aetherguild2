@@ -5,7 +5,7 @@ import helper
 from aetherguild.listener_service.session import LEVEL_USER, LEVEL_GUEST, LEVEL_ADMIN
 
 
-class TestQuery(unittest.TestCase, helper.DatabaseTestHelper):
+class TestAuth(unittest.TestCase, helper.DatabaseTestHelper):
     def setUp(self):
         self.init_database()
 
