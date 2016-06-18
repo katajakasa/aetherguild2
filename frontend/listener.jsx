@@ -181,6 +181,14 @@ class Listener {
         return false;
     }
 
+    cancel_route_listeners(route) {
+        /**
+         * Cancels all listeners for a route
+         * @param {string} route - Routing tag
+         */
+        delete this.listening[route];
+    }
+
     send(route, receipt, data) {
         /**
          * Send a message through websocket to the server
@@ -214,7 +222,11 @@ class Listener {
 }
 
 
-new Listener("ws://localhost:8000/ws").connect().then(function(obj) {
+var q = new Listener("ws://localhost:8000/ws");
+q.add_listener('auth.login', function(route, message) {
+    console.log("Broadcast for " + route + " w/ " + message);
+});
+q.connect().then(function(obj) {
     obj.listener.request(
         "auth.login", {"username": "tuomas", "password": "test1234"}
     ).then(function(obj) {
@@ -225,6 +237,7 @@ new Listener("ws://localhost:8000/ws").connect().then(function(obj) {
         return obj.listener.request("auth.logout", {});
     }).then(function(obj) {
         console.log(obj.data);
+        obj.listener.cancel_route_listeners('auth.login');
         obj.listener.close();
     }).catch(function(obj) {
         console.log("Error: " + obj.error_str);

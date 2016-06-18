@@ -8,7 +8,7 @@ from passlib.hash import pbkdf2_sha512
 from sqlalchemy.orm.exc import NoResultFound
 
 from aetherguild.listener_service.tables import User, Session
-from aetherguild.listener_service.user_session import UserSession
+from aetherguild.listener_service.user_session import UserSession, LEVEL_USER
 from basehandler import BaseHandler, is_authenticated
 
 log = logging.getLogger(__name__)
@@ -50,6 +50,11 @@ class AuthHandler(BaseHandler):
                 'session_key': key,
                 'user': user.serialize()
             })
+
+            # Broadcast to other users that this one has logged in
+            self.broadcast_message({
+                'user': user.serialize()
+            }, req_level=LEVEL_USER, avoid_self=True)
             log.info(u"Login OK for user %s", username)
         else:
             self.send_error(401, u"Wrong username and/or password")
@@ -60,6 +65,9 @@ class AuthHandler(BaseHandler):
         self.session.invalidate()
         self.send_control({'loggedout': True})
         self.send_message({'loggedout': True})
+        self.broadcast_message({
+            'user': self.session.user.serialize()
+        }, req_level=LEVEL_USER, avoid_self=True)
         log.info(u"Logout OK for user %s", self.session.user.username)
 
     def authenticate(self, track_route, message):

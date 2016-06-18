@@ -45,7 +45,6 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     def serialize(self):
         return {
             'id': self.id,
-            'username': self.username,
             'nickname': self.nickname,
             'level': self.level,
             'created_at': arrow.get(self.created_at).isoformat(),

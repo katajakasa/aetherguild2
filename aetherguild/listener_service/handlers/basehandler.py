@@ -92,3 +92,13 @@ class BaseHandler(object):
         """
         self.send(data, is_control=True)
 
+    def broadcast_message(self, data, avoid_self=False, req_level=0):
+        """ Helper for sending a standard message packet to the web client
+        :param data: Message contents
+        :param avoid_self: Avoid self when broadcasting message
+        :param req_level: Required client userlevel to receive this broadcast
+        """
+        self.broadcast({
+            'error': False,
+            'data': data
+        }, avoid_self=avoid_self, req_level=req_level)
