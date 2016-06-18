@@ -21,9 +21,9 @@ Response (server -> client), success:
     'data': {
         'sections': [
         {
-            "id": <int Section ID>,
-            "sort_index": <int Sort index>,
-            "title": <str Section title>,
+            'id': <int Section ID>,
+            'sort_index': <int Sort index>,
+            'title': <str Section title>,
         },
         {
             <...>
@@ -56,14 +56,14 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
-        "boards": [
+        'boards': [
         {
-            "description": <str Board description>,
-            "title": <std Board title>,
-            "section": <int Section ID>,
-            "sort_index": <int Sort index>,
-            "req_level": <int Required user level>,
-            "id": <int Board ID>
+            'description': <str Board description>,
+            'title': <std Board title>,
+            'section': <int Section ID>,
+            'sort_index': <int Sort index>,
+            'req_level': <int Required user level>,
+            'id': <int Board ID>
         },
         {
             <...>
@@ -94,17 +94,17 @@ Response (server -> client), success:
     'data': {
         'sections': [
         {
-            "id": <int Section ID>,
-            "sort_index": <int Sort index>,
-            "title": <str Section title>,
-            "boards": [
+            'id': <int Section ID>,
+            'sort_index': <int Sort index>,
+            'title': <str Section title>,
+            'boards': [
             {  
-                "description": <str Board description>,
-                "title": <std Board title>,
-                "section": <int Section ID>,
-                "sort_index": <int Sort index>,
-                "req_level": <int Required user level>,
-                "id": <int Board ID>
+                'description': <str Board description>,
+                'title': <std Board title>,
+                'section': <int Section ID>,
+                'sort_index': <int Sort index>,
+                'req_level': <int Required user level>,
+                'id': <int Board ID>
             },
             {
                 <...>
@@ -143,14 +143,22 @@ Response (server -> client), success:
     'data': {
         'threads': [
         {
-            "id": <int Thread ID>,
-            "board": <int Board ID>,
-            "user": <int User ID>,
-            "title": <str Section title>,
-            "created_at": <iso8601 Creation date>,
-            "views": <int Number of views>,
-            "sticky": <bool Is thread sticky>,
-            "closed": <bool Is thread closed>
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': { # Owner of the thread
+                'id': <int User ID>,
+                'username': <str Username>,
+                'nickname': <str Nickname>,
+                'level': <int User level>,
+                'created_at': <iso8601 User creation date>,
+                'last_contact': <iso8601 Last contact with user>
+            },
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
         },
         {
             <...>
@@ -186,11 +194,36 @@ Response (server -> client), success:
     'data': {
         'posts': [
         {
-            "id": <int Thread ID>,
-            "thread": <int Thread ID>,
-            "user": <int User ID>,
-            "message": <str Message>,
-            "created_at": <iso8601 Creation date>,
+            'id': <int Thread ID>,
+            'thread': <int Thread ID>,
+            'user': { # Owner of the post
+                'id': <int User ID>,
+                'username': <str Username>,
+                'nickname': <str Nickname>,
+                'level': <int User level>,
+                'created_at': <iso8601 User creation date>,
+                'last_contact': <iso8601 Last contact with user>
+            },
+            'message': <str Message>,
+            'created_at': <iso8601 Creation date>,
+            'edits': [
+            {
+                'id': <int Edit ID>,
+                'post': <int Post ID>,
+                'user': { # Owner of the edit
+                    'id': <int User ID>,
+                    'username': <str Username>,
+                    'nickname': <str Nickname>,
+                    'level': <int User level>,
+                    'created_at': <iso8601 User creation date>,
+                    'last_contact': <iso8601 Last contact with user>
+                },
+                'message': <str Edit message>,
+                'created_at': <iso8601 Edit creation date>
+                }, 
+            }, {
+                <...>
+            }]
         },
         {
             <...>
