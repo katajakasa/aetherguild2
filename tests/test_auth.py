@@ -2,7 +2,6 @@
 
 import unittest
 import helper
-from aetherguild.listener_service.session import LEVEL_USER, LEVEL_GUEST, LEVEL_ADMIN
 
 
 class TestAuth(unittest.TestCase, helper.DatabaseTestHelper):

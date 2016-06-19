@@ -51,3 +51,32 @@ class MQConnection(object):
         self.channel.close()
         self.connection.close()
         log.info("MQ: Connection closed")
+
+
+class MQConnectionMock(object):
+    def __init__(self):
+        self.message_log = []
+
+    def connect(self):
+        pass
+
+    def is_closed(self):
+        return False
+
+    def publish(self, message):
+        self.message_log.append(message)
+
+    def consume(self):
+        return []
+
+    def cancel_consumer(self):
+        pass
+
+    def ack(self, tag):
+        pass
+
+    def nack(self, tag):
+        pass
+
+    def close(self):
+        pass
