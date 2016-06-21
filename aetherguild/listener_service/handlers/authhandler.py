@@ -25,7 +25,10 @@ class AuthHandler(BaseHandler):
             user = User.get_one(self.db, username=username, deleted=False)
         except NoResultFound:
             # Attempt to protect against timing attacks
-            pbkdf2_sha512.verify(password, password)
+            pbkdf2_sha512.verify(password, '$pbkdf2-sha512$25000$/d8bg5CSUuq9lxLCm'
+                                           'PNeCw$v8i0AT1iLaj77KSY15JwjzGX/JY.RvZJ'
+                                           'ACYqGO96gRdGX.8TicEfEidec/1zfuWh961kqa'
+                                           'v0osbPglBV/z.F6Q')
             self.send_error(401, u"Wrong username and/or password")
             log.warning(u"Login failed for user %s", username)
             return
