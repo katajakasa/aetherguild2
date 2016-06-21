@@ -5,16 +5,11 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     sass = require('gulp-sass'),
+    webpack = require('webpack-stream'),
     server;
 
-INCLUDE_JS = [
-    'bower_components/react/react.js',
-    'bower_components/react/react-dom.js',
-    'bower_components/jquery/dist/jquery.min.js',
-    'bower_components/babel/browser.min.js',
-    'bower_components/socket.io-client/socket.io.js',
-    'bower_components/bootstrap/dist/js/bootstrap.min.js',
-];
+var env = 'development';
+var webpackConfig = require('./webpack.config.js');
 
 INCLUDE_CSS = [
     // Library CSS goes here.
@@ -22,63 +17,52 @@ INCLUDE_CSS = [
 ];
 
 INCLUDE_FONTS = [
-    'bower_components/bootstrap-sass/assets/fonts/**/*',
+    'node_modules/bootstrap-sass/assets/fonts/**/*',
 ];
 
 SOURCES = 'frontend/';
 TARGET = 'target/';
 
-gulp.task('libs/js', function () {
-    var handler = function (err) {
-        console.error('Error in library JS', err.toString());
-    };
-    return gulp.src(INCLUDE_JS)
-        .pipe(sourcemaps.init())
-        .pipe(concat('libs.js'))
-        //.pipe(uglify())//.on('error', handler)
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(TARGET + 'js/'));
-});
+// library static CSS
 gulp.task('libs/css', function () {
     return gulp.src(INCLUDE_CSS)
         .pipe(concat('libs.css'))
         .pipe(gulp.dest(TARGET + 'css/'));
 });
+// library fonts
 gulp.task('libs/fonts', function () {
     return gulp.src(INCLUDE_FONTS)
         .pipe(gulp.dest(TARGET + 'fonts/'));
 });
+// site JS/JSX
 gulp.task('site/js', function () {
     var handler = function (err) {
-        console.error('Error in site JS', err.toString());
+        console.error('Error in site JS:', err.toString());
     };
-    return gulp.src('frontend/**/*.jsx')
-        .pipe(sourcemaps.init())
-        .pipe(babel())//.on('error', handler)
-        .pipe(concat('app.js'))
-        .pipe(uglify())//.on('error', handler)
-        .pipe(sourcemaps.write('.'))
+    return gulp.src(SOURCES + 'site.jsx')
+        .pipe(webpack(webpackConfig))
         .pipe(gulp.dest(TARGET + 'js/'));
 });
+// site SCSS (includes bootstrap)
 gulp.task('site/css', function () {
-    return gulp.src('frontend/site.scss')
+    return gulp.src(SOURCES + 'site.scss')
         .pipe(sass({
-            includePaths: ['bower_components/bootstrap-sass/assets/stylesheets']
+            includePaths: ['node_modules/bootstrap-sass/assets/stylesheets']
         }).on('error', sass.logError))
         .pipe(concat('app.css'))
         .pipe(gulp.dest(TARGET + 'css/'));
 });
+// site HTML
 gulp.task('site/html', function () {
-    return gulp.src('frontend/**/*.html')
+    return gulp.src(SOURCES + '**/*.html')
         .pipe(gulp.dest(TARGET));
 });
 
-gulp.task('client', ['libs/js', 'libs/css', 'libs/fonts', 'site/js', 'site/css', 'site/html']);
+gulp.task('client', ['libs/css', 'libs/fonts', 'site/js', 'site/css', 'site/html']);
 
-// build client and server, watch sources, automatically restart server
+// build client, watch sources
 gulp.task('watch', ['client'], function () {
-    gulp.watch(['frontend/**/*.html'], ['site/html']);
-    gulp.watch(['frontend/**/*.jsx'], ['site/js']);
-    gulp.watch(['frontend/**/*.scss'], ['site/css']);
+    gulp.watch([SOURCES + '**/*.html'], ['site/html']);
+    gulp.watch([SOURCES + '**/*.jsx'], ['site/js']);
+    gulp.watch([SOURCES + '**/*.scss'], ['site/css']);
 });
-
