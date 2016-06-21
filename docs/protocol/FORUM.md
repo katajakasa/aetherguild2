@@ -141,18 +141,23 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
-        'threads': [
-        {
-            'id': <int Thread ID>,
-            'board': <int Board ID>,
-            'user': { # Owner of the thread
+        'users': [ # Contains all users shown in the threads
+            <int User ID>: {
                 'id': <int User ID>,
-                'username': <str Username>,
                 'nickname': <str Nickname>,
                 'level': <int User level>,
                 'created_at': <iso8601 User creation date>,
                 'last_contact': <iso8601 Last contact with user>
-            },
+            }, 
+            <int User ID>: {
+                <...>
+            }
+        ],
+        'threads': [
+        {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
             'title': <str Section title>,
             'created_at': <iso8601 Creation date>,
             'views': <int Number of views>,
@@ -192,35 +197,32 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
-        'posts': [
-        {
-            'id': <int Thread ID>,
-            'thread': <int Thread ID>,
-            'user': { # Owner of the post
+        'users': [ # Contains all users shown in the posts
+            <int User ID>: {
                 'id': <int User ID>,
-                'username': <str Username>,
                 'nickname': <str Nickname>,
                 'level': <int User level>,
                 'created_at': <iso8601 User creation date>,
                 'last_contact': <iso8601 Last contact with user>
-            },
+            }, 
+            <int User ID>: {
+                <...>
+            }
+        ],
+        'posts': [
+        {
+            'id': <int Thread ID>,
+            'thread': <int Thread ID>,
+            'user': <int User ID for the owner/creator of the post>,
             'message': <str Message>,
             'created_at': <iso8601 Creation date>,
             'edits': [
             {
                 'id': <int Edit ID>,
                 'post': <int Post ID>,
-                'user': { # Owner of the edit
-                    'id': <int User ID>,
-                    'username': <str Username>,
-                    'nickname': <str Nickname>,
-                    'level': <int User level>,
-                    'created_at': <iso8601 User creation date>,
-                    'last_contact': <iso8601 Last contact with user>
-                },
+                'user': <int User ID>,
                 'message': <str Edit message>,
                 'created_at': <iso8601 Edit creation date>
-                }, 
             }, {
                 <...>
             }]
@@ -232,7 +234,6 @@ Response (server -> client), success:
 }
 ```
 
-
 ## 6. Get forum post
 
 Returns a single forum post.
@@ -241,10 +242,6 @@ Returns a single forum post.
 
 Inserts or updates a forum post. Insert if no ID is supplied, update if id is supplied and user owns the post.
 
-## 8. Get forum thread
-
-Returns a single forum thread.
-
-## 9. Upsert forum thread
+## 8. Upsert forum thread
 
 Inserts or updates a forum thread. Insert if no ID is supplied, update if id is supplied and user owns the thread.
