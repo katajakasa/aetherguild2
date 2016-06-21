@@ -3,6 +3,7 @@
 import logging
 import arrow
 from sqlalchemy import func, and_
+from sqlalchemy.orm.exc import NoResultFound
 from basehandler import BaseHandler
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
@@ -13,12 +14,14 @@ log = logging.getLogger(__name__)
 class ForumHandler(BaseHandler):
     def get_sections(self, track_route, message):
         # Select sections that have boards with req_level that is smaller or equal to current logged users userlevel
-        sections = self.db.query(ForumSection).filter(
+        sections = self.db.query(ForumSection).filter(and_(
             self.db.query(func.count('*').label('count1')).filter(and_(
                 ForumBoard.section == ForumSection.id,
-                ForumBoard.req_level <= self.session.get_level()
-            )).as_scalar() > 0
-        )
+                ForumBoard.deleted == False,
+                ForumBoard.req_level <= self.session.get_level(),
+            )).as_scalar() > 0,
+            ForumSection.deleted == False
+        ))
 
         # Serialize and dump out
         out = []
@@ -31,7 +34,8 @@ class ForumHandler(BaseHandler):
         section_id = data.get('section', None)
 
         # Get boards that have acceptable user level. If section was requested, add it as a restriction to the query.
-        boards = self.db.query(ForumBoard).filter(ForumBoard.req_level <= self.session.get_level())
+        boards = self.db.query(ForumBoard)\
+            .filter(ForumBoard.req_level <= self.session.get_level(), ForumBoard.deleted == False)
         if section_id:
             boards = boards.filter(ForumBoard.section == section_id)
 
@@ -42,13 +46,14 @@ class ForumHandler(BaseHandler):
 
     def get_combined_boards(self, track_route, message):
         # Get allowed sections
-        sections = self.db.query(ForumSection).filter(
+        sections = self.db.query(ForumSection).filter(and_(
             self.db.query(func.count('*').label('count1')).filter(and_(
                 ForumBoard.section == ForumSection.id,
                 ForumBoard.deleted == False,
                 ForumBoard.req_level <= self.session.get_level()
-            )).as_scalar() > 0
-        )
+            )).as_scalar() > 0,
+            ForumSection.deleted == False
+        ))
 
         # Iterate through sections, get boards for them
         out = []
@@ -57,7 +62,8 @@ class ForumHandler(BaseHandler):
             out_section['boards'] = []
             boards = self.db.query(ForumBoard).filter(and_(
                 ForumBoard.req_level <= self.session.get_level(),
-                ForumBoard.section == section.id
+                ForumBoard.section == section.id,
+                ForumBoard.deleted == False
             ))
             for board in boards:
                 out_section['boards'].append(board.serialize())
@@ -69,6 +75,13 @@ class ForumHandler(BaseHandler):
         count = message['data'].get('count', None)
         board_id = message['data']['board']
 
+        # Check if user has rights to the board. Fake out 404 if not.
+        board = ForumBoard.get_one_or_none(self.db, id=board_id, deleted=False)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Not Found")
+            return
+
+        # Get threads, apply limit and offset if required in args
         threads = self.db.query(ForumThread)\
             .filter(ForumThread.board == board_id, ForumThread.deleted == False)\
             .order_by(ForumThread.created_at.desc())
@@ -101,6 +114,13 @@ class ForumHandler(BaseHandler):
         count = message['data'].get('count', None)
         thread_id = message['data']['thread']
 
+        # Check if user has rights to the board. Fake out 404 if not.
+        thread = ForumThread.get_one_or_none(self.db, id=thread_id, deleted=False)
+        if not thread or not self._has_rights_to_board(thread=thread):
+            self.send_error(404, "Not Found")
+            return
+
+        # Get posts, apply limit and offset if required in args
         posts = self.db.query(ForumPost)\
             .filter(ForumPost.thread == thread_id, ForumPost.deleted == False)\
             .order_by(ForumPost.created_at.desc())
@@ -132,6 +152,29 @@ class ForumHandler(BaseHandler):
 
         self.send_message({'posts': post_list, 'users': user_list})
 
+    def get_post(self, track_route, message):
+        post_id = message['data']['post']
+
+        # Check if user has rights to the board. Fake out 404 if not.
+        post = ForumPost.get_one_or_none(self.db, id=post_id, deleted=False)
+        if not post or not self._has_rights_to_board(post=post):
+            self.send_error(404, "Not Found")
+            return
+
+        # Serialize data and return it
+        post_data = post.serialize()
+        post_data['user'] = User.get_one(self.db, id=post.user).serialize()
+        self.send_message({'post': post_data})
+
+    def _has_rights_to_board(self, board=None, thread=None, post=None):
+        if not board:
+            if not thread:
+                if not post:
+                    return False
+                thread = ForumThread.get_one_or_none(self.db, id=post.thread, deleted=False)
+            board = ForumBoard.get_one_or_none(self.db, id=thread.board, deleted=False)
+        return board and board.deleted is False and board.req_level <= self.session.get_level()
+
     def handle(self, track_route, message):
         # If we fail here, it's fine. An exception handler in upwards takes care of the rest.
         cbs = {
@@ -140,5 +183,6 @@ class ForumHandler(BaseHandler):
             'get_combined_boards': self.get_combined_boards,
             'get_threads': self.get_threads,
             'get_posts': self.get_posts,
+            'get_post': self.get_post
         }
         cbs[track_route.pop(0)](track_route, message)
