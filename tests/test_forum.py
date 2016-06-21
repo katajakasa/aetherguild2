@@ -13,7 +13,7 @@ class TestForum(unittest.TestCase, helper.DatabaseTestHelper):
         self.init_database()
         self.create_test_users()
         self.create_test_sessions()
-        self.create_test_forum(self.test_users[1])
+        self.create_test_forum()
 
         self.db_session = self.db()
         self.mq_connection = MQConnectionMock()

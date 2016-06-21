@@ -51,9 +51,9 @@ class DatabaseTestHelper(object):
             self.test_sessions.append(ses)
         s.commit()
 
-    def create_test_forum(self, user):
+    def create_test_forum(self):
         s = self.db()
-        for section_num in range(0, 2):
+        for section_num in range(0, 3):
             section = ForumSection()
             section.title = u'Section {}'.format(section_num)
             section.description = u'Description for section {}'.format(section_num)
@@ -72,9 +72,10 @@ class DatabaseTestHelper(object):
                 s.flush()
 
                 for thread_num in range(0, 11):
+                    thread_starter = self.test_users[random.randint(0, 2)].id
                     thread = ForumThread()
                     thread.board = board.id
-                    thread.user = user.id
+                    thread.user = thread_starter
                     thread.title = u'Thread {}-{}-{}'.format(section_num, board_num, thread_num)
                     s.add(thread)
                     s.flush()
@@ -82,7 +83,7 @@ class DatabaseTestHelper(object):
                     for post_num in range(0, 14):
                         post = ForumPost()
                         post.thread = thread.id
-                        post.user = user.id
+                        post.user = thread_starter if post_num == 0 else self.test_users[random.randint(0, 2)].id
                         post.message = u'\n'.join(loremipsum.get_sentences(random.randint(1, 8)))
                         s.add(post)
                         s.flush()
@@ -90,7 +91,7 @@ class DatabaseTestHelper(object):
                         for edit_num in range(0, random.randint(0, 2)):
                             edit = ForumPostEdit()
                             edit.post = post.id
-                            edit.user = user.id
+                            edit.user = post.user
                             edit.message = u'Edit for post {}'.format(post_num)
                             s.add(edit)
         s.commit()
