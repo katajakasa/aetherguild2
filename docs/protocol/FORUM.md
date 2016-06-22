@@ -211,7 +211,7 @@ Response (server -> client), success:
         ],
         'posts': [
         {
-            'id': <int Thread ID>,
+            'id': <int Post ID>,
             'thread': <int Thread ID>,
             'user': <int User ID for the owner/creator of the post>,
             'message': <str Message>,
@@ -236,7 +236,60 @@ Response (server -> client), success:
 
 ## 6. Get forum post
 
-Returns a single forum post.
+Requests the server to send a single forum post
+
+Request (client -> server):
+```
+{
+    'route': 'forum.get_post',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'post': <int Post ID>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.get_post',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'users': [ # Contains all users shown in the posts
+            <int User ID>: {
+                'id': <int User ID>,
+                'nickname': <str Nickname>,
+                'level': <int User level>,
+                'created_at': <iso8601 User creation date>,
+                'last_contact': <iso8601 Last contact with user>
+            }, 
+            <int User ID>: {
+                <...>
+            }
+        ],
+        'post': {
+            'id': <int Post ID>,
+            'thread': <int Thread ID>,
+            'user': <int User ID for the owner/creator of the post>,
+            'message': <str Message>,
+            'created_at': <iso8601 Creation date>,
+            'edits': [
+                {
+                    'id': <int Edit ID>,
+                    'post': <int Post ID>,
+                    'user': <int User ID for the owner/creator of the edit>,
+                    'message': <str Edit message>,
+                    'created_at': <iso8601 Edit creation date>
+                },
+                {
+                    <...>
+                }
+            ] # /edits
+        } # /post
+    },
+}
+```
 
 ## 7. Upsert forum post
 

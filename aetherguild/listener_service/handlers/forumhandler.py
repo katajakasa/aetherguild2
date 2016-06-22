@@ -161,10 +161,22 @@ class ForumHandler(BaseHandler):
             self.send_error(404, "Not Found")
             return
 
-        # Serialize data and return it
+        user_list = {}
+        if post.user not in user_list:
+            user_list[post.user] = User.get_one(self.db, id=post.user).serialize()
+
+        # Serialize post data
         post_data = post.serialize()
-        post_data['user'] = User.get_one(self.db, id=post.user).serialize()
-        self.send_message({'post': post_data})
+
+        # Fetch edits for the post
+        post_data['edits'] = []
+        for edit in ForumPostEdit.get_many(self.db, post=post.id):
+            if edit.user not in user_list:
+                user_list[edit.user] = User.get_one(self.db, id=edit.user).serialize()
+            post_data['edits'].append(edit.serialize())
+
+        # Send post data
+        self.send_message({'post': post_data, 'users': user_list})
 
     def _has_rights_to_board(self, board=None, thread=None, post=None):
         if not board:
