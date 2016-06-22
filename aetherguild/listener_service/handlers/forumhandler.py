@@ -2,9 +2,10 @@
 
 import logging
 import arrow
+import bleach
 from sqlalchemy import func, and_
 from sqlalchemy.orm.exc import NoResultFound
-from basehandler import BaseHandler
+from basehandler import BaseHandler, is_authenticated
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
 
@@ -178,6 +179,78 @@ class ForumHandler(BaseHandler):
         # Send post data
         self.send_message({'post': post_data, 'users': user_list})
 
+    @is_authenticated
+    def upsert_post(self, track_route, message):
+        post_data = message['data']['post']
+        edit_data = message['data'].get('edit')
+        post_id = message['data']['post'].get('id')
+
+        # Check if the thread exists
+        thread = ForumThread.get_one_or_none(self.db, id=post_data['thread'], deleted=False)
+        if not thread:
+            self.send_error(404, "Thread not Found")
+            return
+
+        # Fetch board and check if we have rights to upsert to it. Also, we need board ref later
+        board = ForumBoard.get_one_or_none(self.db, id=thread.board, deleted=False)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Thread not Found")
+            return
+
+        # Create a new post or get an old one, depending on whether we are updating or inserting
+        if post_id:
+            post = ForumPost.get_one(self.db, id=post_id, user=self.session.user.id, deleted=False)
+        else:
+            post = ForumPost()
+            post.user = self.session.user
+            post.thread = post_data['thread']
+
+        # Set message
+        post.message = bleach.clean(post_data['message'])
+        self.db.add(post)
+
+        # If this is an edit, add a message
+        if post_id:
+            edit = ForumPostEdit()
+            edit.user = self.session.user
+            edit.post = post.id
+            edit.message = u''
+            edit.message = bleach.clean(edit_data.get('message', u''))
+            self.db.add(edit)
+
+        # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
+        self.send_message({'post_id': post.id})
+        self.broadcast_message({'post_id': post.id}, avoid_self=True, req_level=board.req_level)
+
+    @is_authenticated
+    def upsert_thread(self, track_route, message):
+        thread_data = message['data']['thread']
+        thread_id = message['data']['thread'].get('id')
+
+        # Check if user has rights to the board. Fake out 404 if not.
+        board = ForumBoard.get_one_or_none(self.db, id=thread_data['board'], deleted=False)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Thread not Found")
+            return
+
+        # Create a new post or get an old one, depending on whether we are updating or inserting
+        if thread_id:
+            thread = ForumThread.get_one(self.db, id=thread_id, user=self.session.user.id, deleted=False)
+        else:
+            thread = ForumThread()
+            thread.user = self.session.user
+            thread.board = thread_data['board']
+
+        # Set message
+        thread.title = bleach.clean(thread_data['title'])
+        thread.sticky = bool(thread_data.get('sticky', False))
+        thread.closed = bool(thread_data.get('closed', False))
+        self.db.add(thread)
+
+        # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
+        self.send_message({'thread_id': thread.id})
+        self.broadcast_message({'thread_id': thread.id}, avoid_self=True, req_level=board.req_level)
+
     def _has_rights_to_board(self, board=None, thread=None, post=None):
         if not board:
             if not thread:
@@ -195,6 +268,8 @@ class ForumHandler(BaseHandler):
             'get_combined_boards': self.get_combined_boards,
             'get_threads': self.get_threads,
             'get_posts': self.get_posts,
-            'get_post': self.get_post
+            'get_post': self.get_post,
+            'upsert_post': self.upsert_post,
+            'upsert_thread': self.upsert_thread
         }
         cbs[track_route.pop(0)](track_route, message)

@@ -7,3 +7,4 @@ alembic
 pymysql
 tabulate
 loremipsum
+bleach
