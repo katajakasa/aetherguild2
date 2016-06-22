@@ -171,7 +171,7 @@ class ForumPostEdit(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     post = Column(ForeignKey('forum_post.id'), nullable=False)
     user = Column(ForeignKey('user.id'), nullable=False)
-    message = Column(Text, nullable=False)
+    message = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     def serialize(self):

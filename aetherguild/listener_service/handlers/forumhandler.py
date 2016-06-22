@@ -214,8 +214,9 @@ class ForumHandler(BaseHandler):
             edit = ForumPostEdit()
             edit.user = self.session.user
             edit.post = post.id
-            edit.message = u''
-            edit.message = bleach.clean(edit_data.get('message', u''))
+            edit.message = edit_data.get('message', None)
+            if edit.message:
+                edit.message = bleach.clean(edit.message)
             self.db.add(edit)
 
         # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
