@@ -90,6 +90,11 @@ class AuthHandler(BaseHandler):
                 'session_key': key,
                 'user': user_session.user.serialize()
             })
+
+            # Broadcast to other users that this one has logged in
+            self.broadcast_message({
+                'user': user_session.user.serialize()
+            }, req_level=LEVEL_USER, avoid_self=True)
         else:
             self.send_error(401, u"Invalid session key")
 

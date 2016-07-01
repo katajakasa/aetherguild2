@@ -77,9 +77,9 @@ class ForumHandler(BaseHandler):
         board_id = message['data']['board']
 
         # Check if user has rights to the board. Fake out 404 if not.
-        board = ForumBoard.get_one_or_none(self.db, id=board_id, deleted=False)
-        if not board or not self._has_rights_to_board(board=board):
-            self.send_error(404, "Not Found")
+        board = self._get_board(board_id=board_id)
+        if not board or not self._has_rights_to_board(board):
+            self.send_error(404, "Board not Found")
             return
 
         # Get threads, apply limit and offset if required in args
@@ -115,10 +115,16 @@ class ForumHandler(BaseHandler):
         count = message['data'].get('count', None)
         thread_id = message['data']['thread']
 
+        # Make sure thread exists first
+        thread = self._get_thread(thread_id=thread_id)
+        if not thread:
+            self.send_error(404, "Thread not Found")
+            return
+
         # Check if user has rights to the board. Fake out 404 if not.
-        thread = ForumThread.get_one_or_none(self.db, id=thread_id, deleted=False)
-        if not thread or not self._has_rights_to_board(thread=thread):
-            self.send_error(404, "Not Found")
+        board = self._get_board(board_id=thread.board)
+        if not board or not self._has_rights_to_board(board):
+            self.send_error(404, "Thread not Found")
             return
 
         # Get posts, apply limit and offset if required in args
@@ -156,15 +162,22 @@ class ForumHandler(BaseHandler):
     def get_post(self, track_route, message):
         post_id = message['data']['post']
 
-        # Check if user has rights to the board. Fake out 404 if not.
-        post = ForumPost.get_one_or_none(self.db, id=post_id, deleted=False)
-        if not post or not self._has_rights_to_board(post=post):
-            self.send_error(404, "Not Found")
+        # Check if post exists
+        post = self._get_post(post_id=post_id)
+        if not post:
+            self.send_error(404, "Post not Found")
             return
 
-        user_list = {}
-        if post.user not in user_list:
-            user_list[post.user] = User.get_one(self.db, id=post.user).serialize()
+        # Check if user has rights to the board. Fake out 404 if not.
+        board = self._get_board(thread_id=post.thread)
+        if not board or not self._has_rights_to_board(board):
+            self.send_error(404, "Post not Found")
+            return
+
+        # Append post owner to the user list that is returned with the response
+        user_list = {
+            post.user: User.get_one(self.db, id=post.user).serialize()
+        }
 
         # Serialize post data
         post_data = post.serialize()
@@ -186,13 +199,13 @@ class ForumHandler(BaseHandler):
         post_id = message['data']['post'].get('id')
 
         # Check if the thread exists
-        thread = ForumThread.get_one_or_none(self.db, id=post_data['thread'], deleted=False)
+        thread = self._get_thread(thread_id=post_data['thread'])
         if not thread:
             self.send_error(404, "Thread not Found")
             return
 
         # Fetch board and check if we have rights to upsert to it. Also, we need board ref later
-        board = ForumBoard.get_one_or_none(self.db, id=thread.board, deleted=False)
+        board = self._get_board(board_id=thread.board)
         if not board or not self._has_rights_to_board(board=board):
             self.send_error(404, "Thread not Found")
             return
@@ -229,9 +242,9 @@ class ForumHandler(BaseHandler):
         thread_id = message['data']['thread'].get('id')
 
         # Check if user has rights to the board. Fake out 404 if not.
-        board = ForumBoard.get_one_or_none(self.db, id=thread_data['board'], deleted=False)
+        board = self._get_board(board_id=thread_data['board'])
         if not board or not self._has_rights_to_board(board=board):
-            self.send_error(404, "Thread not Found")
+            self.send_error(404, "Board not Found")
             return
 
         # Create a new post or get an old one, depending on whether we are updating or inserting
@@ -252,13 +265,31 @@ class ForumHandler(BaseHandler):
         self.send_message({'thread_id': thread.id})
         self.broadcast_message({'thread_id': thread.id}, avoid_self=True, req_level=board.req_level)
 
-    def _has_rights_to_board(self, board=None, thread=None, post=None):
-        if not board:
-            if not thread:
-                if not post:
-                    return False
-                thread = ForumThread.get_one_or_none(self.db, id=post.thread, deleted=False)
-            board = ForumBoard.get_one_or_none(self.db, id=thread.board, deleted=False)
+    def _get_post(self, post_id=None):
+        if post_id:
+            return ForumPost.get_one_or_none(self.db, id=post_id, deleted=False)
+        return None
+
+    def _get_thread(self, thread_id=None, post_id=None):
+        if post_id and not thread_id:
+            post = self._get_post(post_id=post_id)
+            thread_id = post.thread if post else None
+        if thread_id:
+            return ForumThread.get_one_or_none(self.db, id=thread_id, deleted=False)
+        return None
+
+    def _get_board(self, board_id=None, thread_id=None, post_id=None):
+        if post_id and not thread_id and not board_id:
+            post = self._get_post(post_id=post_id)
+            thread_id = post.thread if post else None
+        if thread_id and not board_id:
+            thread = self._get_thread(thread_id=thread_id)
+            board_id = thread.board if thread else None
+        if board_id:
+            return ForumBoard.get_one_or_none(self.db, id=board_id, deleted=False)
+        return None
+
+    def _has_rights_to_board(self, board=None):
         return board and board.deleted is False and board.req_level <= self.session.get_level()
 
     def handle(self, track_route, message):
