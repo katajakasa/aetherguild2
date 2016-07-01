@@ -57,12 +57,18 @@ gulp.task('site/html', function () {
     return gulp.src(SOURCES + '**/*.html')
         .pipe(gulp.dest(TARGET));
 });
+// site images
+gulp.task('site/images', function () {
+    return gulp.src(SOURCES + '**/img/*.*')
+        .pipe(gulp.dest(TARGET));
+});
 
-gulp.task('client', ['libs/css', 'libs/fonts', 'site/js', 'site/css', 'site/html']);
+gulp.task('client', ['libs/css', 'libs/fonts', 'site/js', 'site/css', 'site/html', 'site/images']);
 
 // build client, watch sources
 gulp.task('watch', ['client'], function () {
     gulp.watch([SOURCES + '**/*.html'], ['site/html']);
     gulp.watch([SOURCES + '**/*.jsx'], ['site/js']);
     gulp.watch([SOURCES + '**/*.scss'], ['site/css']);
+    gulp.watch([SOURCES + 'img/*.*'], ['site/images']);
 });
