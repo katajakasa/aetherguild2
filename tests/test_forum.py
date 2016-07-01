@@ -18,15 +18,16 @@ class TestForum(unittest.TestCase, helper.DatabaseTestHelper):
         self.db_session = self.db()
         self.mq_connection = MQConnectionMock()
         self.mq_session = MQSession(self.mq_connection)
-        self.user_session_lguest = UserSession(self.db_session, None)
-        self.user_session_luser = UserSession(self.db_session, self.test_sessions[1].session_key)
-        self.user_session_ladmin = UserSession(self.db_session, self.test_sessions[2].session_key)
+        self.user_session_guest = UserSession(self.db_session, None)
+        self.user_session_user = UserSession(self.db_session, self.test_sessions[1].session_key)
+        self.user_session_admin = UserSession(self.db_session, self.test_sessions[2].session_key)
 
     def create_handler(self, route, user_session):
-        return ForumHandler(self.db_session, self.mq_session, user_session, 'connection_id', 'receipt_id', route)
+        return ForumHandler(
+            self.db_session, self.mq_session, user_session, 'fake_connection_id', 'fake_receipt_id', route)
 
     def test_get_sections_as_guest(self):
-        h = self.create_handler('forum.get_sections', self.user_session_lguest)
+        h = self.create_handler('forum.get_sections', self.user_session_guest)
         h.handle(['get_sections'], {})
         self.assertEqual(len(self.mq_connection.message_log), 1)
 
