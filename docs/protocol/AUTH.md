@@ -133,3 +133,65 @@ Response (server -> client), success:
 
 Possible response error codes:
 * 403: Forbidden
+
+## 4. Registration
+
+Requests the server to register a new username/password combination.
+If registration fails, a specific error is returned. Field requirements:
+* Username must not be reserved, and must be 4-32 characters long.
+* Nickname must not be reserved, and must be 2-32 characters long.
+* Password must be 8 characters long. No upper limit.
+
+Request (client -> server):
+```
+{
+    'route': 'auth.register',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'username': <str Username>,
+        'password': <str Password>,
+        'nickname': <str Nickname>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'auth.register',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+}
+```
+
+## 5. Updating profile
+
+Requests the server to update the currently logged in users profile.
+If registration fails, a specific error is returned. Field requirements:
+* Nickname must not be reserved, and must be 2-32 characters long.
+* New password must be 8 characters long. No upper limit.
+* Old password must match the users current password
+
+To run this command, user must have a valid session (be logged in).
+
+Request (client -> server):
+```
+{
+    'route': 'auth.update_profile',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'new_password': <str New password>,
+        'old_password': <str Old, valid password>,
+        'nickname': <str New nickname>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'auth.update_profile',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+}
+```
