@@ -170,7 +170,9 @@ Requests the server to update the currently logged in users profile.
 If registration fails, a specific error is returned. Field requirements:
 * Nickname must not be reserved, and must be 2-32 characters long.
 * New password must be 8 characters long. No upper limit.
-* Old password must match the users current password
+* Old password must match the users current password.
+
+Nickname
 
 To run this command, user must have a valid session (be logged in).
 
@@ -180,9 +182,9 @@ Request (client -> server):
     'route': 'auth.update_profile',
     'receipt': <variable Receipt ID>,  # Optional
     'data': {
-        'new_password': <str New password>,
-        'old_password': <str Old, valid password>,
-        'nickname': <str New nickname>,
+        'new_password': <str New password, Optional>,
+        'old_password': <str Old, valid password. Mandatory if new_password is supplied>,
+        'nickname': <str New nickname. Optional>,
     }
 }
 ```
