@@ -215,7 +215,7 @@ class ForumHandler(BaseHandler):
             post = ForumPost.get_one(self.db, id=post_id, user=self.session.user.id, deleted=False)
         else:
             post = ForumPost()
-            post.user = self.session.user
+            post.user = self.session.user.id
             post.thread = post_data['thread']
 
         # Set message
@@ -225,7 +225,7 @@ class ForumHandler(BaseHandler):
         # If this is an edit, add a message
         if post_id:
             edit = ForumPostEdit()
-            edit.user = self.session.user
+            edit.user = self.session.user.id
             edit.post = post.id
             edit.message = edit_data.get('message', None)
             if edit.message:
@@ -252,7 +252,7 @@ class ForumHandler(BaseHandler):
             thread = ForumThread.get_one(self.db, id=thread_id, user=self.session.user.id, deleted=False)
         else:
             thread = ForumThread()
-            thread.user = self.session.user
+            thread.user = self.session.user.id
             thread.board = thread_data['board']
 
         # Set message
