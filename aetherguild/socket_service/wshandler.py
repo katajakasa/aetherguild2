@@ -5,6 +5,7 @@ import logging
 import uuid
 import json
 from tornado.websocket import WebSocketHandler
+from urlparse import urlparse
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +24,8 @@ class WsHandler(WebSocketHandler):
         if config.DEBUG:
             return True
         else:
-            return super(WsHandler, self).check_origin(origin)
+            parsed_origin = urlparse(origin)
+            return parsed_origin.hostname in config.ALLOW_HOSTS
 
     def open(self):
         """ Handler for opened websocket connections """

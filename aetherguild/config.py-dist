@@ -10,6 +10,11 @@ ADDRESS = "0.0.0.0"
 # Debug mode
 DEBUG = True
 
+# Which hosts should be allowed when running in DEBUG=False mode
+ALLOW_HOSTS = [
+    'localhost'
+]
+
 # Database configuration
 # !!! Use pymysql as a driver for utf8mb4 support
 # 1. mysql -u root -p
