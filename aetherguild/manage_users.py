@@ -86,8 +86,8 @@ def del_user(a):
 
 def edit_user(a):
     # Check if user wants to give password but not via commandline
-    if a.password == '':
-        a.password = getpass("Password: ")
+    #if a.password == '':
+    #    a.password = getpass("Password: ")
 
     ret_val = check_args(a)
     if ret_val != 0:
