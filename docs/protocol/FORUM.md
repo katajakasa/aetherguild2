@@ -337,10 +337,121 @@ Response (server -> client), success:
 }
 ```
 
-## 7. Upsert forum post
+## 7. Insert forum post
 
-Inserts or updates a forum post. Insert if no ID is supplied, update if id is supplied and user owns the post.
+Inserts a forum post to a thread. User must have sufficient privileges
+to access the thread and threads board to insert posts to it.
 
-## 8. Upsert forum thread
+This will also broadcast a notification to _other_ users with sufficient
+privileges to see the board/thread/post. The notification will match the
+response format (below).
 
-Inserts or updates a forum thread. Insert if no ID is supplied, update if id is supplied and user owns the thread.
+Request (client -> server):
+```
+{
+    'route': 'forum.insert_post',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'thread': <int Thread ID>,
+        'message': <str New message text>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.insert_post',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'thread': {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
+        },
+        'user': [ # Information of the creator of the thread
+            'id': <int User ID>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        ],
+        'post': {
+            'id': <int Post ID>,
+            'thread': <int Thread ID>,
+            'user': <int User ID for the owner/creator of the post>,
+            'message': <str Message>,
+            'created_at': <iso8601 Creation date>,
+        }
+    },
+}
+```
+
+
+## 8. Insert forum thread
+
+Inserts a forum thread to a board. User must have sufficient privileges
+to access the board to insert threads (and posts) to it. This will add
+both the new thread and the first post for it.
+
+This will also broadcast a notification to _other_ users with sufficient
+privileges to see the board/thread/post. The notification will match the
+response format (below).
+
+Request (client -> server):
+```
+{
+    'route': 'forum.insert_thread',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': <int Board ID>,
+        'message': <str New post message text>,
+        'title': <str Thread title>,
+        'sticky': <bool Make thread sticky/unsticky>,
+        'closed': <bool Make thread closed>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.insert_post',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'thread': {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
+        },
+        'user': [ # Information of the creator of the thread
+            'id': <int User ID>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        ],
+        'post': {
+            'id': <int Post ID>,
+            'thread': <int Thread ID>,
+            'user': <int User ID for the owner/creator of the post>,
+            'message': <str Message>,
+            'created_at': <iso8601 Creation date>,
+        }
+    },
+}
+```

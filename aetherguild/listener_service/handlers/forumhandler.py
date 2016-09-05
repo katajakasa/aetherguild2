@@ -7,11 +7,12 @@ import bleach
 from sqlalchemy import func, and_
 from sqlalchemy.orm.exc import NoResultFound
 
-from basehandler import BaseHandler, is_authenticated, validate_message_schema
+from basehandler import BaseHandler, is_authenticated, validate_message_schema, ErrorList
 from aetherguild.listener_service.schemas import get_boards_request, get_threads_request, get_posts_request,\
     get_post_request, insert_post_request, insert_thread_request, update_post_request, update_thread_request
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
+from utils import validate_str_length, validate_required_field
 from aetherguild.listener_service.user_session import LEVEL_ADMIN
 
 log = logging.getLogger(__name__)
@@ -235,7 +236,47 @@ class ForumHandler(BaseHandler):
     @is_authenticated
     @validate_message_schema(insert_post_request)
     def insert_post(self, track_route, message):
-        pass
+        thread_id = message['data'].get('thread')
+        msg = bleach.clean(message['data'].get('message'))
+        errors_list = ErrorList()
+
+        # Get the thread
+        thread = self._get_thread(thread_id=thread_id)
+        if not thread:
+            self.send_error(404, "Thread not found")
+            return
+
+        # Make sure user can access the board to which the thread belongs
+        board = self._get_board(board_id=thread.board)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Thread not found")
+            return
+
+        # Validate fields
+        validate_required_field('message', msg, errors_list)
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
+            return
+
+        # Create a new post for the thread
+        post = ForumPost()
+        post.message = msg
+        post.user = self.session.user.id
+        post.thread = thread.id
+        self.db.add(post)
+        self.db.flush()
+
+        # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
+        self.send_message({
+            'thread': thread.serialize(),
+            'post': post.serialize(),
+            'user': self.session.user.serialize()
+        })
+        self.broadcast_message({
+            'thread': thread.serialize(),
+            'post': post.serialize(),
+            'user': self.session.user.serialize()
+        }, avoid_self=True, req_level=board.req_level)
 
     @is_authenticated
     @validate_message_schema(update_thread_request)
@@ -245,141 +286,55 @@ class ForumHandler(BaseHandler):
     @is_authenticated
     @validate_message_schema(insert_thread_request)
     def insert_thread(self, track_route, message):
-        pass
-
-    @is_authenticated
-    def upsert_post(self, track_route, message):
-        post_data = message['data']['post']
-        edit_data = message['data'].get('edit', {})
-        post_id = post_data.get('id')
-        thread_id = post_data.get('thread')
-        message = post_data.get('message')
-        edit_message = edit_data.get('message')
-
-        # Validate post message length (if any)
-        if message:
-            message = bleach.clean(message)
-            if len(message) == 0:
-                self.send_error(400, "Message must not be empty")
-                return
-
-        # Validate edit message length (if any)
-        if edit_message:
-            edit_message = bleach.clean(edit_message)
-            if len(edit_message) > 256:
-                self.send_error(400, "Edit Message must less than 256 characters long")
-                return
-
-        # Must supply either post_id or thread_id
-        if not thread_id and not post_id:
-            self.send_error(400, "Must supply either board id or thread id")
-            return
-
-        # Find the thread
-        if post_id:
-            thread = self._get_thread(post_id=post_id)
-        else:
-            thread = self._get_thread(thread_id=thread_id)
-
-        # Check if the thread exists
-        if not thread:
-            self.send_error(404, "Thread not Found")
-            return
-
-        # Fetch board and check if we have rights to upsert to it. Also, we need board ref later
-        board = self._get_board(board_id=thread.board)
-        if not board or not self._has_rights_to_board(board=board):
-            self.send_error(404, "Thread not Found")
-            return
-
-        # Create a new post or get an old one, depending on whether we are updating or inserting
-        if post_id:
-            try:
-                post = ForumPost.get_one(self.db, id=post_id, user=self.session.user.id, deleted=False)
-                post.message = message or post.message
-                if self.session.has_level(LEVEL_ADMIN):
-                    post.thread = thread_id or post.thread
-            except NoResultFound:
-                self.send_error(404, "Post not found")
-                return
-        else:
-            post = ForumPost()
-            post.user = self.session.user.id
-            post.thread = thread_id
-            post.message = message
-
-        # Set message
-        self.db.add(post)
-
-        # If this is an edit, add a message
-        if post_id:
-            edit = ForumPostEdit()
-            edit.user = self.session.user.id
-            edit.post = post.id
-            edit.message = edit_message
-            self.db.add(edit)
-
-        # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
-        self.send_message({'post_id': post.id})
-        self.broadcast_message({'post_id': post.id}, avoid_self=True, req_level=board.req_level)
-
-    @is_authenticated
-    def upsert_thread(self, track_route, message):
-        thread_data = message['data']['thread']
-        thread_id = thread_data.get('id')
-        board_id = thread_data.get('board')
-        title = thread_data.get('title')
-        sticky = thread_data.get('sticky')
-        closed = thread_data.get('closed')
-
-        # Validate title length
-        if title:
-            title = bleach.clean(title)
-            if len(title) < 4 or len(title) > 64:
-                self.send_error(400, "Thread title must be between 4 and 64 characters long")
-                return
-
-        # Must supply either board_id or thread_id
-        if not thread_id and not board_id:
-            self.send_error(400, "Must supply either board id or thread id")
-            return
-
-        # Get the board ref
-        if thread_id:
-            current_board = self._get_board(thread_id=thread_id)
-        else:
-            current_board = self._get_board(board_id=board_id)
+        board_id = message['data'].get('board')
+        title = bleach.clean(message['data'].get('title'))
+        msg = bleach.clean(message['data'].get('message'))
+        sticky = message['data'].get('sticky')
+        closed = message['data'].get('closed')
+        errors_list = ErrorList()
 
         # Make sure user can access the board
-        if not current_board or not self._has_rights_to_board(board=current_board):
-            self.send_error(404, "Board not Found")
+        board = self._get_board(board_id=board_id)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Board not found")
             return
 
-        # Create a new post or get an old one, depending on whether we are updating or inserting
-        if thread_id:
-            try:
-                thread = ForumThread.get_one(self.db, id=thread_id, user=self.session.user.id, deleted=False)
-                if self.session.has_level(LEVEL_ADMIN):
-                    thread.board = board_id or thread.board
-                thread.title = title or thread.title
-                thread.sticky = sticky or thread.sticky
-                thread.closed = closed or thread.closed
-            except NoResultFound:
-                self.send_error(404, "Thread not found")
-                return
-        else:
-            thread = ForumThread()
-            thread.user = self.session.user.id
-            thread.board = board_id
-            thread.title = title
-            thread.sticky = sticky or False
-            thread.closed = closed or False
+        # Validate fields
+        validate_required_field('message', msg, errors_list)
+        validate_str_length('title', title, errors_list, 4, 64)
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
+            return
 
+        # Create a new thread
+        thread = ForumThread()
+        thread.user = self.session.user.id
+        thread.board = board.id
+        thread.title = title
+        thread.sticky = sticky
+        thread.closed = closed
         self.db.add(thread)
+        self.db.flush()
+
+        # Create a new post for the thread
+        post = ForumPost()
+        post.message = msg
+        post.user = self.session.user.id
+        post.thread = thread.id
+        self.db.add(post)
+        self.db.flush()
 
         # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
-        self.send_message({'thread_id': thread.id})
-        self.broadcast_message({'thread_id': thread.id}, avoid_self=True, req_level=board.req_level)
+        self.send_message({
+            'thread': thread.serialize(),
+            'post': post.serialize(),
+            'user': self.session.user.serialize()
+        })
+        self.broadcast_message({
+            'thread': thread.serialize(),
+            'post': post.serialize(),
+            'user': self.session.user.serialize()
+        }, avoid_self=True, req_level=board.req_level)
 
     def _get_board(self, board_id=None, thread_id=None, post_id=None):
         if post_id and not thread_id and not board_id:
@@ -411,8 +366,6 @@ class ForumHandler(BaseHandler):
             'get_threads': self.get_threads,
             'get_posts': self.get_posts,
             'get_post': self.get_post,
-            'upsert_post': self.upsert_post,
-            'upsert_thread': self.upsert_thread,
             'update_thread': self.update_thread,
             'insert_thread': self.insert_thread,
             'update_post': self.update_post,
