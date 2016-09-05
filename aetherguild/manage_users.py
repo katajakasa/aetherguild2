@@ -53,7 +53,6 @@ def add_user(a):
     user.username = a.username
     user.nickname = a.nick
     user.level = userlevels_choices.index(a.level)
-    user.active = a.active
     user.password = pbkdf2_sha512.encrypt(a.password)
 
     s.add(user)
@@ -97,8 +96,8 @@ def edit_user(a):
         user = User.get_one(s, username=a.username)
         if a.nick:
             user.nickname = a.nick
-        if a.active:
-            user.active = a.active
+        if a.deleted:
+            user.deleted = a.deleted
         if a.level:
             user.level = userlevels_choices.index(a.level)
         if a.password:
@@ -121,7 +120,7 @@ def list_users(a):
     for user in User.get_many(s):
         ser = user.serialize()
         ser['level'] = userlevels_choices[ser['level']]
-        ser['active'] = 'Yes' if ser['active'] else 'No'
+        ser['deleted'] = 'Yes' if ser['deleted'] else 'No'
         userlist.append(ser)
     s.close()
     headers = {
@@ -129,7 +128,7 @@ def list_users(a):
         'username': 'Username',
         'nickname': 'Nickname',
         'level': 'Level',
-        'active': 'Active',
+        'deleted': 'Deleted',
         'created_at': 'Created At',
         'last_contact': 'Last Contact At'
     }
@@ -147,7 +146,6 @@ if __name__ == '__main__':
     parser.add_argument('--username', type=str, help='Username')
     parser.add_argument('--password', type=str, nargs='?', help='Password', default='')
     parser.add_argument('--nick', type=str, help='User nickname')
-    parser.add_argument('--active', type=bool, help='Is the user active', default=True)
     parser.add_argument('--level', type=str, choices=userlevels_choices, help='User privilege level', default='user')
     args = parser.parse_args()
 
