@@ -64,10 +64,13 @@ class ForumHandler(BaseHandler):
             self.send_error(404, "Board not Found")
             return
 
-        # Get threads, apply limit and offset if required in args
-        threads = self.db.query(ForumThread)\
-            .filter(ForumThread.board == board_id, ForumThread.deleted == False)\
-            .order_by(ForumThread.created_at.desc())
+        # Base query
+        base_query = self.db.query(ForumThread) \
+            .filter(ForumThread.board == board_id, ForumThread.deleted == False)
+
+        # Get threads + thread count, apply limit and offset if required in args
+        threads_count = base_query.count()
+        threads = base_query.order_by(ForumThread.created_at.desc())
         if start:
             threads = threads.offset(start)
         if count:
@@ -93,6 +96,7 @@ class ForumHandler(BaseHandler):
 
         self.send_message({
             'board': board.serialize(),
+            'threads_count': threads_count,
             'threads': thread_list,
             'users': user_list
         })
