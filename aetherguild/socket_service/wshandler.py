@@ -21,7 +21,11 @@ class WsHandler(WebSocketHandler):
         self.user_level = 0
 
     def check_origin(self, origin):
-        return True
+        if config.DEBUG:
+            return True
+        else:
+            parsed_origin = urlparse(origin)
+            return parsed_origin.hostname in config.ALLOW_HOSTS
 
     def open(self):
         """ Handler for opened websocket connections """
