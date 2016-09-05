@@ -150,10 +150,12 @@ class ForumHandler(BaseHandler):
             self.send_error(404, "Thread not Found")
             return
 
+        base_query = self.db.query(ForumPost)\
+            .filter(ForumPost.thread == thread_id, ForumPost.deleted == False)
+
         # Get posts, apply limit and offset if required in args
-        posts = self.db.query(ForumPost)\
-            .filter(ForumPost.thread == thread_id, ForumPost.deleted == False)\
-            .order_by(ForumPost.created_at.desc())
+        posts_count = base_query.count()
+        posts = base_query.order_by(ForumPost.created_at.desc())
         if start:
             posts = posts.offset(start)
         if count:
@@ -183,6 +185,7 @@ class ForumHandler(BaseHandler):
         self.send_message({
             'board': board.serialize(),
             'thread': thread.serialize(),
+            'posts_count': posts_count,
             'posts': post_list,
             'users': user_list
         })
