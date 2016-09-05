@@ -174,7 +174,7 @@ class ForumHandler(BaseHandler):
 
                 # Append the edit as serialized to edits list
                 data['edits'].append(edit.serialize())
-                post_list.append(data)
+            post_list.append(data)
 
         self.send_message({
             'board': board.serialize(),
@@ -231,7 +231,7 @@ class ForumHandler(BaseHandler):
     @is_authenticated
     @validate_message_schema(update_post_request)
     def update_post(self, track_route, message):
-        pass
+        post_id = message['data'].get('post')
 
     @is_authenticated
     @validate_message_schema(insert_post_request)
