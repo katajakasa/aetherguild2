@@ -46,7 +46,6 @@ if __name__ == '__main__':
     # Index and static handlers
     handlers = [
         (r'/ws', ws),
-        (r'/(.*)$', web.StaticFileHandler, {'path': config.PUBLIC_PATH, 'default_filename': 'index.html'}),
     ]
     conf = {
         'debug': config.DEBUG,

@@ -1,6 +1,0 @@
-// This is included before bootstrap, so it can be used to change bootstrap variables.
-
-@function font-path($path) {
-    @return '../fonts/' + $path;
-}
-//$icon-font-path: "../fonts/";
