@@ -166,10 +166,6 @@ update_thread_request = {
         'required': True,
         'type': 'integer'
     },
-    'board': {
-        'required': False,
-        'type': 'integer'
-    },
     'title': {
         'required': False,
         'type': 'string'

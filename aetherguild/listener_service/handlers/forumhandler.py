@@ -331,7 +331,48 @@ class ForumHandler(BaseHandler):
     @is_authenticated
     @validate_message_schema(update_thread_request)
     def update_thread(self, track_route, message):
-        pass
+        thread_id = message['data'].get('thread')
+        title = message['data'].get('title')
+        closed = message['data'].get('closed')
+        sticky = message['data'].get('sticky')
+        errors_list = ErrorList()
+
+        # Get the thread
+        thread = self._get_thread(thread_id=thread_id)
+        if not thread or thread.user != self.session.user.id:
+            self.send_error(404, "Thread not found")
+            return
+
+        # Make sure user can access the board to which the thread belongs
+        board = self._get_board(board_id=thread.board)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Thread not found")
+            return
+
+        # Validate fields
+        if title:
+            validate_required_field('title', title, errors_list)
+
+        # If errors, stop here
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
+            return
+
+        # Update fields as necessary
+        if sticky:
+            thread.sticky = sticky
+        if closed:
+            thread.closed = closed
+        if title:
+            thread.title = title
+        self.db.add(thread)
+        self.db.flush()
+
+        # Notify the sender user about success
+        self.send_message({
+            'thread': thread.serialize(),
+            'user': self.session.user.serialize()
+        })
 
     @is_authenticated
     @validate_message_schema(insert_thread_request)

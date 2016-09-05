@@ -517,3 +517,52 @@ Response (server -> client), success:
     },
 }
 ```
+
+## 10. Update forum thread
+
+Updates a forum thread. User must have sufficient privileges
+to access the board on which the thread is on. User must also be the 
+owner of the thread.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.update_thread',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'thread': <int Thread ID>,
+        'title': <str Thread title, optional>,
+        'sticky': <bool Make thread sticky/unsticky, optional>,
+        'closed': <bool Make thread closed, optional>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.update_thread',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'thread': {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
+        },
+        'user': [ # Information of the creator of the thread
+            'id': <int User ID>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        ],
+    },
+}
+```
