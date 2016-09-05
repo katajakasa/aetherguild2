@@ -74,7 +74,9 @@ def del_user(a):
         return ret_val
 
     s = db_session()
-    User.delete(s, username=a.username)
+    user = User.get_one(s, username=a.username)
+    user.deleted = True
+    s.add(user)
     s.commit()
     s.close()
 
@@ -96,8 +98,6 @@ def edit_user(a):
         user = User.get_one(s, username=a.username)
         if a.nick:
             user.nickname = a.nick
-        if a.deleted:
-            user.deleted = a.deleted
         if a.level:
             user.level = userlevels_choices.index(a.level)
         if a.password:
@@ -120,7 +120,6 @@ def list_users(a):
     for user in User.get_many(s):
         ser = user.serialize()
         ser['level'] = userlevels_choices[ser['level']]
-        ser['deleted'] = 'Yes' if ser['deleted'] else 'No'
         userlist.append(ser)
     s.close()
     headers = {
@@ -128,7 +127,6 @@ def list_users(a):
         'username': 'Username',
         'nickname': 'Nickname',
         'level': 'Level',
-        'deleted': 'Deleted',
         'created_at': 'Created At',
         'last_contact': 'Last Contact At'
     }
