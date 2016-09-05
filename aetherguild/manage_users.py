@@ -119,6 +119,7 @@ def list_users(a):
     userlist = []
     for user in User.get_many(s):
         ser = user.serialize()
+        ser['username'] = user.username
         ser['level'] = userlevels_choices[ser['level']]
         userlist.append(ser)
     s.close()
