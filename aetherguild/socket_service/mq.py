@@ -51,9 +51,10 @@ class MQConnection(object):
             log.info(u'MQ: Connection closed (%d): %s. Reconnecting.', reply_code, reply_text)
 
     def close(self):
-        self._closing = True
-        self.stop_consumer()
-        self.connection.close()
+        if not self._closing:
+            self._closing = True
+            self.stop_consumer()
+            self.connection.close()
 
     def is_connected(self):
         return self.connected
