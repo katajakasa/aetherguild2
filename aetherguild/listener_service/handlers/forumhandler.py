@@ -232,6 +232,56 @@ class ForumHandler(BaseHandler):
     @validate_message_schema(update_post_request)
     def update_post(self, track_route, message):
         post_id = message['data'].get('post')
+        msg = bleach.clean(message['data'].get('message'))
+        edit_msg = bleach.clean(message['data'].get('edit_message', ''))
+        errors_list = ErrorList()
+
+        # Get the post and make sure it belongs to the current user
+        post = self._get_post(post_id=post_id)
+        if not post or post.user != self.session.user.id:
+            self.send_error(404, "Post not found")
+            return
+
+        # Get the thread
+        thread = self._get_thread(thread_id=post.thread)
+        if not thread:
+            self.send_error(404, "Post not found")
+            return
+
+        # Make sure user can access the board to which the thread belongs
+        board = self._get_board(board_id=thread.board)
+        if not board or not self._has_rights_to_board(board=board):
+            self.send_error(404, "Post not found")
+            return
+
+        # Validate fields
+        validate_required_field('message', msg, errors_list)
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
+            return
+
+        # Update post
+        post.message = msg
+        self.db.add(post)
+
+        # If edit message is given, save it
+        edit = None
+        if edit_msg:
+            edit = ForumPostEdit()
+            edit.message = edit_msg
+            edit.post = post.id
+            edit.user = self.session.user.id
+            self.db.add(edit)
+
+        # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
+        out_data = {
+            'thread': thread.serialize(),
+            'post': post.serialize(),
+            'user': self.session.user.serialize()
+        }
+        if edit:
+            out_data['edit'] = edit.serialize()
+        self.send_message(out_data)
 
     @is_authenticated
     @validate_message_schema(insert_post_request)

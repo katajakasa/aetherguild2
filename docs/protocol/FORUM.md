@@ -455,3 +455,65 @@ Response (server -> client), success:
     },
 }
 ```
+
+## 9. Update forum post
+
+Updates a forum post. User must have sufficient privileges
+to access the thread and threads board to update posts to it. Post must
+belong to the current user.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.update_post',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'post': <int Post ID>,
+        'message': <str New message text>,
+        'edit_message': <str Edit message, optional>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.update_post',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'thread': {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
+        },
+        'edit': { # Only exists if edit_message was given in request
+            'id': <int Edit ID>,
+            'post: <int Post ID>,
+            'user': <int User ID>,
+            'message': <str Message text>,
+            'created_at': <iso8601 Creation timestamp>
+        },
+        'user': [ # Information of the creator of the thread
+            'id': <int User ID>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        ],
+        'post': {
+            'id': <int Post ID>,
+            'thread': <int Thread ID>,
+            'user': <int User ID for the owner/creator of the post>,
+            'message': <str Message>,
+            'created_at': <iso8601 Creation date>,
+        }
+    },
+}
+```
