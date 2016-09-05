@@ -191,7 +191,7 @@ Request (client -> server):
     'route': 'forum.get_posts',
     'receipt': <variable Receipt ID>,  # Optional
     'data': {
-        'board': <int Thread ID>,
+        'board': <int Board ID>,
         'start': <int Index of first result entry>,  # Optional
         'count': <int Number of result entries>  # Optional
     }
