@@ -10,12 +10,15 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from aetherguild.listener_service.tables import User, Session
 from aetherguild.listener_service.user_session import UserSession, LEVEL_USER, LEVEL_GUEST
-from basehandler import BaseHandler, is_authenticated
+from basehandler import BaseHandler, ErrorList, is_authenticated, validate_message_schema
+from aetherguild.listener_service.schemas import login_request, register_request, profile_request, authenticate_request
+from utils import validate_str_length, validate_required_field, validate_password_field
 
 log = logging.getLogger(__name__)
 
 
 class AuthHandler(BaseHandler):
+    @validate_message_schema(login_request)
     def login(self, track_route, message):
         username = message['data']['username']
         password = message['data']['password']
@@ -64,38 +67,40 @@ class AuthHandler(BaseHandler):
             self.send_error(401, u"Wrong username and/or password")
             log.warning(u"Login failed for user %s", username)
 
+    @validate_message_schema(register_request)
     def register(self, track_route, message):
         username = message['data']['username']
         password = message['data']['password']
         nickname = bleach.clean(message['data']['nickname'])
+        errors_list = ErrorList()
 
-        if len(password) < 8:
-            self.send_error(400, u"Password must be at least 8 characters long")
-            return
+        validate_str_length('username', username, errors_list, 4, 32)
+        validate_str_length('password', password, errors_list, 8)
+        validate_str_length('nickname', nickname, errors_list, 2, 32)
 
-        if len(username) > 32 or len(username) < 4:
-            self.send_error(400, u"Username must be between 4 and 32 characters long.")
-            return
-
-        if len(nickname) > 32 or len(nickname) < 2:
-            self.send_error(400, u"Nickname must be between 2 and 32 characters long.")
+        # got validation errors, fail here. Only hit DB checks if everything else is fine
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
             return
 
         # Make sure the username is not yet reserved
         try:
             User.get_one(self.db, username=username)
-            self.send_error(400, u"Username is already reserved!")
-            return
+            errors_list.add_error(u"Username is already reserved!", 'username')
         except NoResultFound:
             pass
 
         # Make sure the nickname is not yet reserved
         try:
             User.get_one(self.db, nickname=nickname)
-            self.send_error(400, u"Nickname is already reserved!")
-            return
+            errors_list.add_error(u"Nickname is already reserved!", 'nickname')
         except NoResultFound:
             pass
+
+        # got validation errors, fail here
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
+            return
 
         user = User()
         user.username = username
@@ -109,62 +114,73 @@ class AuthHandler(BaseHandler):
         log.info(u"New user '%s' registered!", username)
 
     @is_authenticated
+    @validate_message_schema(profile_request)
     def update_profile(self, track_route, message):
         new_password = message['data'].get('new_password')
         old_password = message['data'].get('old_password')
         nickname = message['data'].get('nickname')
-        changed = False
+        errors_list = ErrorList()
 
         # If user wants to change password, handle the checks
         if new_password:
-            if not old_password:
-                self.send_error(400, u"Old password required")
-                return
+            validate_str_length('new_password', new_password, errors_list, 8)
+            validate_required_field('old_password', old_password, errors_list)
 
-            if not pbkdf2_sha512.verify(old_password, self.session.user.password):
-                self.send_error(400, u"Old password is incorrect")
-                return
+            # Only run this check if no other errors were detected
+            if not errors_list.get_list():
+                validate_password_field('old_password', self.session.user.password, old_password, errors_list)
 
-            if len(new_password) < 8:
-                self.send_error(400, u"Password must be at least 8 characters long")
-                return
-
-            self.session.user.password = pbkdf2_sha512.encrypt(new_password)
-            changed = True
+            # Don't change anything if there are errors
+            if not errors_list.get_list():
+                self.session.user.password = pbkdf2_sha512.encrypt(new_password)
+                self.db.add(self.session.user)
 
         # If nickname is being changed, make sure to clean and validate it thoroughly
         if nickname:
             nickname = bleach.clean(nickname)
-            if len(nickname) > 32 or len(nickname) < 2:
-                self.send_error(400, u"Nickname must be between 2 and 32 characters long.")
-                return
+            validate_str_length('nickname', nickname, errors_list, 2, 32)
 
             # Make sure the nickname is not yet reserved
-            try:
-                User.get_one(self.db, nickname=nickname)
-                self.send_error(400, u"Nickname is already reserved!")
-                return
-            except NoResultFound:
-                pass
+            # Only run if the previous checks didn't fail
+            if not errors_list.get_list():
+                try:
+                    User.get_one(self.db, nickname=nickname)
+                    errors_list.add_error(u"Nickname is already reserved!", 'nickname')
+                except NoResultFound:
+                    pass
 
-            self.session.user.nickname = nickname
-            changed = True
+            # Don't change anything if there are errors
+            if not errors_list.get_list():
+                self.session.user.nickname = nickname
+                self.db.add(self.session.user)
 
-        # If any changes were made, save changes
-        if changed:
-            self.db.add(self.session.user)
-        self.send_message(self.session.user.serialize())
+        # got validation errors, fail here
+        if errors_list.get_list():
+            self.send_error(450, errors_list)
+            return
+
+        # On success, return the current user object
+        self.send_message({
+            'user': self.session.user.serialize()
+        })
+
+    @is_authenticated
+    def get_profile(self, track_route, message):
+        self.send_message({
+            'user': self.session.user.serialize()
+        })
 
     @is_authenticated
     def logout(self, track_route, message):
         self.session.invalidate()
         self.send_control({'loggedout': True})
-        self.send_message({'loggedout': True})
+        self.send_message({})
         self.broadcast_message({
             'user': self.session.user.serialize()
         }, req_level=LEVEL_USER, avoid_self=True)
         log.info(u"Logout OK for user %s", self.session.user.username)
 
+    @validate_message_schema(authenticate_request)
     def authenticate(self, track_route, message):
         key = message['data']['session_key']
         user_session = UserSession(self.db, key)
@@ -188,15 +204,14 @@ class AuthHandler(BaseHandler):
                 'user': user_session.user.serialize()
             }, req_level=LEVEL_USER, avoid_self=True)
         else:
-            self.send_error(401, u"Invalid session key")
+            self.send_error(450, u"Invalid session key")
 
-    def handle(self, track_route, message):
-        # If we fail here, it's fine. An exception handler in upwards takes care of the rest.
-        cbs = {
+    def get_routes(self):
+        return {
             'login': self.login,
             'logout': self.logout,
             'authenticate': self.authenticate,
             'register': self.register,
-            'update_profile': self.update_profile
+            'profile_update': self.update_profile,
+            'profile_get': self.get_profile
         }
-        cbs[track_route.pop(0)](track_route, message)

@@ -2,11 +2,13 @@
 
 import logging
 from copy import copy
+from cerberus import Validator
 
 from handlers.authhandler import AuthHandler
 from handlers.forumhandler import ForumHandler
 from user_session import UserSession
 from mq_session import MQSession
+from schemas import base_request
 
 log = logging.getLogger(__name__)
 
@@ -22,12 +24,28 @@ class MessageRouter(object):
         }
 
     def handle(self, head, body):
-        route = body['route']
-        if len(route) > 32:
-            log.warning("Route field was too long!")
-            return
         connection_id = head['connection_id']
         session_key = head.get('session_key')
+
+        # Validate the incoming base message first
+        v = Validator(base_request)
+        if not v.validate(body):
+            error_data = {
+                'error': True,
+                'data': {
+                    'error_code': 400,
+                    'error_messages': [{'message': u'Bad Request'}]
+                }
+            }
+            if body.get('receipt'):
+                error_data['receipt'] = body['receipt']
+            if body.get('route'):
+                error_data['route'] = body['route']
+            MQSession(self.mq_connection).publish(error_data, connection_id=connection_id)
+            log.warning(u"MessageRouter: Invalid packet received from %s", connection_id)
+            return
+
+        # Sort out some vars
         full_route = copy(body['route'])
         track_route = full_route.split('.')
         receipt_id = copy(body.get('receipt'))
@@ -70,7 +88,7 @@ class MessageRouter(object):
                         'route': full_route,
                         'data': {
                             'error_code': 500,
-                            'error_message': 'Server error'
+                            'error_messages': [{'message': u'Server error'}]
                         }
                     }, connection_id=connection_id)
                 raise

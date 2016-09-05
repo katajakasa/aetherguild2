@@ -5,8 +5,6 @@
 Requests the server to authenticate the client with username and password. When correct user
 credentials are supplied, returns session key & user data and sets the connection to authenticated state.
 
-On failure, a standard error packet is returned.
-
 Request (client -> server):
 ```
 {
@@ -19,7 +17,7 @@ Request (client -> server):
 }
 ```
 
-Response (server -> client), success:
+Response (server -> client):
 ```
 {
     'route': 'auth.login',
@@ -31,29 +29,10 @@ Response (server -> client), success:
 }
 ```
 
-Response (server -> client), failure:
-```
-{
-    'route': 'auth.login',
-    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
-    'error': true,
-    'data': {
-        'error_code': <int Error code>,
-        'error_message': <str Error message>,
-    }
-}
-```
-
-Possible response error codes:
-* 500: Server error
-* 401: Login failure; need to authenticate
-
 ## 2. Authentication
 
 Requests the server to authenticate the client with a session key. When a valid session key is  supplied,
 returns session key & user data and sets the connection to authenticated state.
-
-On failure, a standard error packet is returned.
 
 Request (client -> server):
 ```
@@ -66,7 +45,7 @@ Request (client -> server):
 }
 ```
 
-Response (server -> client), success:
+Response (server -> client):
 ```
 {
     'route': 'auth.authenticate',
@@ -87,23 +66,6 @@ Response (server -> client), success:
 }
 ```
 
-Response (server -> client), failure:
-```
-{
-    'route': 'auth.authenticate',
-    'receipt': <variable Receipt ID>, // Receipt ID, if one was supplied on request
-    'error': true,
-    'data': {
-        'error_code': <int Error code>,
-        'error_message': <str Error message>,
-    }
-}
-```
-
-Possible response error codes:
-* 500: Server error
-* 401: Login failure; need to authenticate
-
 ## 3. Logout
 
 Requests the server to invalidate the current authenticated session. All user privileges are dropped, all operations
@@ -116,6 +78,7 @@ Request (client -> server):
 {
     'route': 'auth.logout',
     'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
 }
 ```
 
@@ -125,9 +88,7 @@ Response (server -> client), success:
     'route': 'auth.logout',
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
-    'data': {
-        'loggedout': true,
-    }
+    'data': {}
 }
 ```
 
@@ -161,6 +122,7 @@ Response (server -> client), success:
     'route': 'auth.register',
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
+    'data': {}
 }
 ```
 
@@ -171,8 +133,6 @@ If registration fails, a specific error is returned. Field requirements:
 * Nickname must not be reserved, and must be 2-32 characters long.
 * New password must be 8 characters long. No upper limit.
 * Old password must match the users current password.
-
-Nickname
 
 To run this command, user must have a valid session (be logged in).
 
@@ -195,5 +155,47 @@ Response (server -> client), success:
     'route': 'auth.update_profile',
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
+    'data': {
+        'user': {
+            'id': <int User ID>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        }
+    }
+}
+```
+
+## 6. Fetching profile
+
+Requests the server to fetch the current user profile.
+
+To run this command, user must have a valid session (be logged in).
+
+Request (client -> server):
+```
+{
+    'route': 'auth.get_profile',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'auth.get_profile',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'user': {
+            'id': <int User ID>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        }
+    }
 }
 ```

@@ -141,6 +141,14 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
+        'board': {
+            'description': <str Board description>,
+            'title': <std Board title>,
+            'section': <int Section ID>,
+            'sort_index': <int Sort index>,
+            'req_level': <int Required user level>,
+            'id': <int Board ID>
+        },
         'users': [ # Contains all users shown in the threads
             <int User ID>: {
                 'id': <int User ID>,
@@ -197,6 +205,25 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
+        'board': {
+            'description': <str Board description>,
+            'title': <std Board title>,
+            'section': <int Section ID>,
+            'sort_index': <int Sort index>,
+            'req_level': <int Required user level>,
+            'id': <int Board ID>
+        },
+        'thread': {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
+        },
         'users': [ # Contains all users shown in the posts
             <int User ID>: {
                 'id': <int User ID>,
@@ -256,6 +283,25 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
+        'board': {
+            'description': <str Board description>,
+            'title': <std Board title>,
+            'section': <int Section ID>,
+            'sort_index': <int Sort index>,
+            'req_level': <int Required user level>,
+            'id': <int Board ID>
+        },
+        'thread': {
+            'id': <int Thread ID>,
+            'board': <int Board ID>,
+            'user': <int User ID for the owner (creator) of the thread>,
+            'title': <str Section title>,
+            'created_at': <iso8601 Creation date>,
+            'views': <int Number of views>,
+            'sticky': <bool Is thread sticky>,
+            'closed': <bool Is thread closed>,
+            'last_read': <iso8601 Last read by the user>,
+        },
         'users': [ # Contains all users shown in the posts
             <int User ID>: {
                 'id': <int User ID>,
