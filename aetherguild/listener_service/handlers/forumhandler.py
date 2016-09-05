@@ -155,7 +155,7 @@ class ForumHandler(BaseHandler):
 
         # Get posts, apply limit and offset if required in args
         posts_count = base_query.count()
-        posts = base_query.order_by(ForumPost.created_at.desc())
+        posts = base_query.order_by(ForumPost.created_at.asc())
         if start:
             posts = posts.offset(start)
         if count:
