@@ -304,7 +304,7 @@ class ForumHandler(BaseHandler):
                 return
         else:
             post = ForumPost()
-            post.user = self.session.user
+            post.user = self.session.user.id
             post.thread = thread_id
             post.message = message
 
@@ -314,7 +314,7 @@ class ForumHandler(BaseHandler):
         # If this is an edit, add a message
         if post_id:
             edit = ForumPostEdit()
-            edit.user = self.session.user
+            edit.user = self.session.user.id
             edit.post = post.id
             edit.message = edit_message
             self.db.add(edit)
@@ -369,7 +369,7 @@ class ForumHandler(BaseHandler):
                 return
         else:
             thread = ForumThread()
-            thread.user = self.session.user
+            thread.user = self.session.user.id
             thread.board = board_id
             thread.title = title
             thread.sticky = sticky or False
