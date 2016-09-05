@@ -31,8 +31,6 @@ def check_args(a):
         if len(a.nick) > 32 or len(a.nick) < 2:
             print("Nickname must be between 4 and 32 characters long")
             return 1
-    else:
-        a.nick = a.username
 
     return 0
 
