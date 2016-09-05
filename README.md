@@ -8,7 +8,6 @@ Website project for https://aetherguild.net
 2. Edit the newly created aetherguild/config.py. Make sure you have RabbitMQ vhost & mysql database set up.
 3. `pip install --upgrade -r requirements.txt`
 4. `alembic upgrade head`
-5. `npm install`
 5. Start by running `python -m aetherguild.listener_service.main` and `python -m aetherguild.socket_service.main`.
 
 ## 2. Test data & management
