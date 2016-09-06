@@ -42,14 +42,19 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     last_contact = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
-    def serialize(self):
-        return {
+    def serialize(self, include_username=False, include_deleted=False):
+        out = {
             'id': self.id,
             'nickname': self.nickname,
             'level': self.level,
             'created_at': arrow.get(self.created_at).isoformat(),
             'last_contact': arrow.get(self.last_contact).isoformat()
         }
+        if include_username:
+            out['username'] = self.username
+        if include_deleted:
+            out['deleted'] = self.deleted
+        return out
 
 
 class Session(Base, ModelHelperMixin, ModelFormatMixin):

@@ -291,3 +291,18 @@ delete_thread_request = {
         'required': True
     }
 }
+
+get_users_request = {
+    'include_deleted': {
+        'type': 'boolean',
+        'required': True,
+    },
+    'start': {
+        'type': 'integer',
+        'required': False
+    },
+    'count': {
+        'type': 'integer',
+        'required': False
+    }
+}

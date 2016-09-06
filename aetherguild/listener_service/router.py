@@ -6,6 +6,7 @@ from cerberus import Validator
 
 from handlers.authhandler import AuthHandler
 from handlers.forumhandler import ForumHandler
+from handlers.adminhandler import AdminHandler
 from user_session import UserSession
 from mq_session import MQSession
 from schemas import base_request
@@ -20,6 +21,7 @@ class MessageRouter(object):
         self.handlers = {
             'auth': AuthHandler,
             'forum': ForumHandler,
+            'admin': AdminHandler,
             None: None
         }
 
