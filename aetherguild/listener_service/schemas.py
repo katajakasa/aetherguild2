@@ -306,3 +306,10 @@ get_users_request = {
         'required': False
     }
 }
+
+delete_user_request = {
+    'user': {
+        'type': 'integer',
+        'required': True
+    }
+}

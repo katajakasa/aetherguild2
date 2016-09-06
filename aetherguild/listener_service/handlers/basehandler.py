@@ -9,7 +9,7 @@ def has_level(level):
     """
     def _inner_has_privileges(method):
         def inner(instance, *args, **kwargs):
-            if instance.session.user is not None and instance.session.has_level(level):
+            if instance.session.is_valid() and instance.session.has_level(level):
                 method(instance, *args, **kwargs)
             else:
                 instance.send_error(403, u"Forbidden")
@@ -21,7 +21,7 @@ def is_authenticated(method):
     """ Checks if user is authenticated
     """
     def inner(instance, *args, **kwargs):
-        if instance.session.user is not None:
+        if instance.session.is_valid():
             method(instance, *args, **kwargs)
         else:
             instance.send_error(403, u"Forbidden")

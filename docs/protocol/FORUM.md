@@ -9,6 +9,7 @@ Request (client -> server):
 {
     'route': 'forum.get_sections',
     'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
 }
 ```
 
@@ -82,6 +83,7 @@ Request (client -> server):
 {
     'route': 'forum.get_combined_boards',
     'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
 }
 ```
 

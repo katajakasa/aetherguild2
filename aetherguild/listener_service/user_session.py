@@ -36,7 +36,9 @@ class UserSession(object):
 
     def is_valid(self):
         """ Checks if this is a valid session for authenticated user """
-        return self.session is not None
+        return self.session is not None \
+            and self.user is not None \
+            and not self.user.deleted
 
     def has_level(self, level):
         """ Checks if the user has required userlevel """
