@@ -268,28 +268,28 @@ update_section_request = {
     }
 }
 
-delete_board = {
+delete_board_request = {
     'board': {
         'type': 'integer',
         'required': True
     }
 }
 
-delete_section = {
+delete_section_request = {
     'section': {
         'type': 'integer',
         'required': True
     }
 }
 
-delete_post = {
+delete_post_request = {
     'post': {
         'type': 'integer',
         'required': True
     }
 }
 
-delete_thread = {
+delete_thread_request = {
     'thread': {
         'type': 'integer',
         'required': True

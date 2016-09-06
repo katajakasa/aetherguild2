@@ -7,9 +7,11 @@ import bleach
 from sqlalchemy import func, and_
 from sqlalchemy.orm.exc import NoResultFound
 
-from basehandler import BaseHandler, is_authenticated, validate_message_schema, ErrorList
+from basehandler import BaseHandler, is_authenticated, has_level, validate_message_schema, ErrorList
 from aetherguild.listener_service.schemas import get_boards_request, get_threads_request, get_posts_request,\
-    get_post_request, insert_post_request, insert_thread_request, update_post_request, update_thread_request
+    get_post_request, insert_post_request, insert_thread_request, update_post_request, update_thread_request,\
+    delete_post_request, delete_thread_request, delete_board_request, delete_section_request, insert_section_request,\
+    insert_board_request, update_section_request, update_board_request
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
 from utils import validate_str_length, validate_required_field
@@ -126,11 +128,6 @@ class ForumHandler(BaseHandler):
                 out_section['boards'].append(board.serialize())
             out.append(out_section)
         self.send_message({'sections': out})
-
-    def _get_post(self, post_id=None):
-        if post_id:
-            return ForumPost.get_one_or_none(self.db, id=post_id, deleted=False)
-        return None
 
     @validate_message_schema(get_posts_request)
     def get_posts(self, track_route, message):
@@ -434,6 +431,46 @@ class ForumHandler(BaseHandler):
             'user': self.session.user.serialize()
         }, avoid_self=True, req_level=board.req_level)
 
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(delete_post_request)
+    def delete_post(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(delete_thread_request)
+    def delete_thread(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(delete_board_request)
+    def delete_board(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(delete_section_request)
+    def delete_section(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(insert_board_request)
+    def insert_board(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(update_board_request)
+    def update_board(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(insert_section_request)
+    def insert_section(self, track_route, message):
+        pass
+
+    @has_level(LEVEL_ADMIN)
+    @validate_message_schema(update_section_request)
+    def update_section(self, track_route, message):
+        pass
+
     def _get_board(self, board_id=None, thread_id=None, post_id=None):
         if post_id and not thread_id and not board_id:
             post = self._get_post(post_id=post_id)
@@ -453,6 +490,11 @@ class ForumHandler(BaseHandler):
             return ForumThread.get_one_or_none(self.db, id=thread_id, deleted=False)
         return None
 
+    def _get_post(self, post_id=None):
+        if post_id:
+            return ForumPost.get_one_or_none(self.db, id=post_id, deleted=False)
+        return None
+
     def _has_rights_to_board(self, board=None):
         return board and board.deleted is False and board.req_level <= self.session.get_level()
 
@@ -466,6 +508,14 @@ class ForumHandler(BaseHandler):
             'get_post': self.get_post,
             'update_thread': self.update_thread,
             'insert_thread': self.insert_thread,
+            'delete_thread': self.delete_thread,
             'update_post': self.update_post,
-            'insert_post': self.insert_post
+            'insert_post': self.insert_post,
+            'delete_post': self.delete_post,
+            'insert_section': self.insert_section,
+            'update_section': self.update_section,
+            'delete_section': self.delete_section,
+            'insert_board': self.insert_board,
+            'update_board': self.update_board,
+            'delete_board': self.delete_board
         }
