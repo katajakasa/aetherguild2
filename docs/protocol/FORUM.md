@@ -472,7 +472,7 @@ Request (client -> server):
     'data': {
         'post': <int Post ID>,
         'message': <str New message text>,
-        'edit_message': <str Edit message, optional>
+        'edit_message': <str Edit message, Optional>
     }
 }
 ```
@@ -533,9 +533,9 @@ Request (client -> server):
     'receipt': <variable Receipt ID>,  # Optional
     'data': {
         'thread': <int Thread ID>,
-        'title': <str Thread title, optional>,
-        'sticky': <bool Make thread sticky/unsticky, optional>,
-        'closed': <bool Make thread closed, optional>
+        'title': <str Thread title>,
+        'sticky': <bool Make thread sticky/unsticky>,
+        'closed': <bool Make thread closed>
     }
 }
 ```
@@ -673,3 +673,76 @@ Response (server -> client), success:
 }
 ```
 
+## 15. Insert forum section
+
+This command requires admin level privileges!
+
+Creates a new forum section. Also broadcasts the creation upon completion,
+broadcast is the same as response.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.insert_section',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'title: <str Section title>,
+        'sort_index': <int Sort Index>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.insert_section',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'section': {
+            'id': <int Section ID>,
+            'title: <str Section title>,
+            'sort_index': <int Sort Index>
+        }
+    }
+}
+```
+
+## 16. Insert forum board
+
+This command requires admin level privileges!
+
+Creates a new forum board. Also broadcasts the creation upon completion,
+broadcast is the same as response.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.insert_board',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'section': <int Section ID>,
+        'title': <str Board title>,
+        'description': <str Board description>,
+        'req_level': <int Required userlevel to see/edit/add/>,
+        'sort_index': <int Sorting index>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.insert_board',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': {
+            'id': <int Board ID>,
+            'section'; <int Section ID>,
+            'title': <str Board title>,
+            'description': <str Board description>,
+            'req_level': <int Required userlevel to see/edit/add/>,
+            'sort_index': <int Sorting index>
+        }
+    }
+}
+```

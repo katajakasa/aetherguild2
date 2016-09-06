@@ -237,17 +237,13 @@ update_board_request = {
 }
 
 insert_section_request = {
-    'board': {
-        'type': 'integer',
-        'required': True
-    },
     'title': {
         'type': 'string',
-        'required': False
+        'required': True
     },
     'sort_index': {
         'type': 'integer',
-        'required': False,
+        'required': True,
         'min': 0
     }
 }
@@ -259,11 +255,11 @@ update_section_request = {
     },
     'title': {
         'type': 'string',
-        'required': False
+        'required': True
     },
     'sort_index': {
         'type': 'integer',
-        'required': False,
+        'required': True,
         'min': 0
     }
 }

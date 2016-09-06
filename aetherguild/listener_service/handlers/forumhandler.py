@@ -235,9 +235,9 @@ class ForumHandler(BaseHandler):
     @is_authenticated
     @validate_message_schema(update_post_request)
     def update_post(self, track_route, message):
-        post_id = message['data'].get('post')
-        msg = bleach.clean(message['data'].get('message'))
-        edit_msg = bleach.clean(message['data'].get('edit_message', ''))
+        post_id = message['data']['post']
+        msg = bleach.clean(message['data']['message'])
+        edit_msg = message['data'].get('edit_message')
         errors_list = ErrorList()
 
         # Get the post and make sure it belongs to the current user
@@ -268,24 +268,20 @@ class ForumHandler(BaseHandler):
         post.message = msg
         self.db.add(post)
 
-        # If edit message is given, save it
-        edit = None
-        if edit_msg:
-            edit = ForumPostEdit()
-            edit.message = edit_msg
-            edit.post = post.id
-            edit.user = self.session.user.id
-            self.db.add(edit)
+        # Save edit (with message if given)
+        edit = ForumPostEdit()
+        edit.message = bleach.clean(edit_msg) if edit_msg else None
+        edit.post = post.id
+        edit.user = self.session.user.id
+        self.db.add(edit)
 
-        # Notify the sender user about success; also broadcast notification to everyone else with sufficient privileges
-        out_data = {
+        # Notify the sender user about success
+        self.send_message({
             'thread': thread.serialize(),
             'post': post.serialize(),
-            'user': self.session.user.serialize()
-        }
-        if edit:
-            out_data['edit'] = edit.serialize()
-        self.send_message(out_data)
+            'user': self.session.user.serialize(),
+            'edit': edit.serialize()
+        })
 
     @is_authenticated
     @validate_message_schema(insert_post_request)
@@ -335,10 +331,10 @@ class ForumHandler(BaseHandler):
     @is_authenticated
     @validate_message_schema(update_thread_request)
     def update_thread(self, track_route, message):
-        thread_id = message['data'].get('thread')
-        title = message['data'].get('title')
-        closed = message['data'].get('closed')
-        sticky = message['data'].get('sticky')
+        thread_id = message['data']['thread']
+        title = message['data']['title']
+        closed = message['data']['closed']
+        sticky = message['data']['sticky']
         errors_list = ErrorList()
 
         # Get the thread
@@ -354,21 +350,17 @@ class ForumHandler(BaseHandler):
             return
 
         # Validate fields
-        if title:
-            validate_required_field('title', title, errors_list)
+        validate_required_field('title', title, errors_list)
 
         # If errors, stop here
         if errors_list.get_list():
             self.send_error(450, errors_list)
             return
 
-        # Update fields as necessary
-        if sticky:
-            thread.sticky = sticky
-        if closed:
-            thread.closed = closed
-        if title:
-            thread.title = title
+        # Update fields
+        thread.sticky = sticky
+        thread.closed = closed
+        thread.title = title
         self.db.add(thread)
         self.db.flush()
 
@@ -442,6 +434,7 @@ class ForumHandler(BaseHandler):
             self.db.add(post)
         except NoResultFound:
             self.send_error(404, u"Post not found")
+            return
 
         self.send_message({})
 
@@ -456,6 +449,7 @@ class ForumHandler(BaseHandler):
             self.db.add(thread)
         except NoResultFound:
             self.send_error(404, u"Thread not found")
+            return
 
         self.send_message({})
 
@@ -470,6 +464,7 @@ class ForumHandler(BaseHandler):
             self.db.add(board)
         except NoResultFound:
             self.send_error(404, u"Board not found")
+            return
 
         self.send_message({})
 
@@ -484,13 +479,43 @@ class ForumHandler(BaseHandler):
             self.db.add(section)
         except NoResultFound:
             self.send_error(404, u"Section not found")
+            return
 
         self.send_message({})
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(insert_board_request)
     def insert_board(self, track_route, message):
-        pass
+        section_id = message['data']['section']
+        title = message['data']['title']
+        description = message['data']['description']
+        req_level = message['data']['req_level']
+        sort_index = message['data']['sort_index']
+
+        # Make sure the section exists first
+        try:
+            ForumSection.get_one(self.db, id=section_id)
+        except NoResultFound:
+            self.send_error(404, u"Section not found")
+            return
+
+        # Add a new board
+        board = ForumBoard()
+        board.section = section_id
+        board.title = title
+        board.description = description
+        board.req_level = req_level
+        board.sort_index = sort_index
+        self.db.add(board)
+        self.db.flush()
+
+        # Send response to the user and broadcast the new board
+        self.send_message({
+            'board': board.serialize()
+        })
+        self.broadcast_message({
+            'board': board.serialize()
+        })
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(update_board_request)
@@ -500,7 +525,23 @@ class ForumHandler(BaseHandler):
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(insert_section_request)
     def insert_section(self, track_route, message):
-        pass
+        title = message['data']['title']
+        sort_index = message['data']['sort_index']
+
+        # Save the new section
+        section = ForumSection()
+        section.title = title
+        section.sort_index = sort_index
+        self.db.add(section)
+        self.db.flush()
+
+        # Send response to the user and broadcast the new section
+        self.send_message({
+            'section': section.serialize()
+        })
+        self.broadcast_message({
+            'section': section.serialize()
+        })
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(update_section_request)
