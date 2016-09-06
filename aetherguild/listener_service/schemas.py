@@ -46,7 +46,7 @@ register_request = {
     }
 }
 
-profile_request = {
+update_profile_request = {
     'old_password': {
         'type': 'string',
         'required': False
@@ -58,7 +58,7 @@ profile_request = {
     },
     'nickname': {
         'type': 'string',
-        'required': False
+        'required': True
     }
 }
 

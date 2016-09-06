@@ -11,7 +11,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from aetherguild.listener_service.tables import User, Session
 from aetherguild.listener_service.user_session import UserSession, LEVEL_USER, LEVEL_GUEST
 from basehandler import BaseHandler, ErrorList, is_authenticated, validate_message_schema
-from aetherguild.listener_service.schemas import login_request, register_request, profile_request, authenticate_request
+from aetherguild.listener_service.schemas import login_request, register_request, update_profile_request,\
+    authenticate_request
 from utils import validate_str_length, validate_required_field, validate_password_field
 
 log = logging.getLogger(__name__)
@@ -114,11 +115,11 @@ class AuthHandler(BaseHandler):
         log.info(u"New user '%s' registered!", username)
 
     @is_authenticated
-    @validate_message_schema(profile_request)
+    @validate_message_schema(update_profile_request)
     def update_profile(self, track_route, message):
         new_password = message['data'].get('new_password')
         old_password = message['data'].get('old_password')
-        nickname = message['data'].get('nickname')
+        nickname = message['data']['nickname']
         errors_list = ErrorList()
 
         # If user wants to change password, handle the checks
@@ -135,24 +136,23 @@ class AuthHandler(BaseHandler):
                 self.session.user.password = pbkdf2_sha512.encrypt(new_password)
                 self.db.add(self.session.user)
 
-        # If nickname is being changed, make sure to clean and validate it thoroughly
-        if nickname:
-            nickname = bleach.clean(nickname)
-            validate_str_length('nickname', nickname, errors_list, 2, 32)
+        # Nickname is mandatory
+        nickname = bleach.clean(nickname)
+        validate_str_length('nickname', nickname, errors_list, 2, 32)
 
-            # Make sure the nickname is not yet reserved
-            # Only run if the previous checks didn't fail
-            if not errors_list.get_list():
-                try:
-                    User.get_one(self.db, nickname=nickname)
-                    errors_list.add_error(u"Nickname is already reserved!", 'nickname')
-                except NoResultFound:
-                    pass
+        # Make sure the nickname is not yet reserved
+        # Only run if the previous checks didn't fail
+        if not errors_list.get_list():
+            try:
+                User.get_one(self.db, nickname=nickname)
+                errors_list.add_error(u"Nickname is already reserved!", 'nickname')
+            except NoResultFound:
+                pass
 
-            # Don't change anything if there are errors
-            if not errors_list.get_list():
-                self.session.user.nickname = nickname
-                self.db.add(self.session.user)
+        # Don't change anything if there are errors
+        if not errors_list.get_list():
+            self.session.user.nickname = nickname
+            self.db.add(self.session.user)
 
         # got validation errors, fail here
         if errors_list.get_list():

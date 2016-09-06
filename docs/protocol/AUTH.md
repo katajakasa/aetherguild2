@@ -144,7 +144,7 @@ Request (client -> server):
     'data': {
         'new_password': <str New password, Optional>,
         'old_password': <str Old, valid password. Mandatory if new_password is supplied>,
-        'nickname': <str New nickname. Optional>,
+        'nickname': <str New nickname. Mandatory>,
     }
 }
 ```
