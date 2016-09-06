@@ -568,3 +568,108 @@ Response (server -> client), success:
     },
 }
 ```
+
+## 11. Delete forum post
+
+This command requires admin level privileges!
+
+Deletes a forum post from a thread.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.delete_post',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'post': <int Post ID>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.delete_post',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
+}
+```
+
+## 12. Delete forum thread
+
+This command requires admin level privileges!
+
+Deletes a forum thread from a board.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.delete_thread',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'thread': <int Thread ID>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.delete_thread',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
+}
+```
+
+## 13. Delete forum board
+
+This command requires admin level privileges!
+
+Deletes a forum board from a section.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.delete_board',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': <int Board ID>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.delete_board',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
+}
+```
+
+## 14. Delete forum section
+
+This command requires admin level privileges!
+
+Deletes a forum section.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.delete_section',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'section': <int Section ID>,
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.delete_section',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {}
+}
+```
+
