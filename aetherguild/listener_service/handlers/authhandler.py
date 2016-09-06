@@ -212,6 +212,6 @@ class AuthHandler(BaseHandler):
             'logout': self.logout,
             'authenticate': self.authenticate,
             'register': self.register,
-            'profile_update': self.update_profile,
-            'profile_get': self.get_profile
+            'update_profile': self.update_profile,
+            'get_profile': self.get_profile
         }
