@@ -78,11 +78,13 @@ get_boards_request = {
 get_threads_request = {
     'start': {
         'type': 'integer',
-        'required': False
+        'required': False,
+        'min': 0
     },
     'count': {
         'type': 'integer',
-        'required': False
+        'required': False,
+        'min': 0
     },
     'board': {
         'type': 'integer',
@@ -93,11 +95,13 @@ get_threads_request = {
 get_posts_request = {
     'start': {
         'type': 'integer',
-        'required': False
+        'required': False,
+        'min': 0
     },
     'count': {
         'type': 'integer',
-        'required': False
+        'required': False,
+        'min': 0
     },
     'thread': {
         'type': 'integer',
