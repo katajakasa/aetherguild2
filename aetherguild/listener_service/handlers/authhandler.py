@@ -144,8 +144,9 @@ class AuthHandler(BaseHandler):
         # Only run if the previous checks didn't fail
         if not errors_list.get_list():
             try:
-                User.get_one(self.db, nickname=nickname)
-                errors_list.add_error(u"Nickname is already reserved!", 'nickname')
+                user = User.get_one(self.db, nickname=nickname)
+                if user.id != self.session.user.id:
+                    errors_list.add_error(u"Nickname is already reserved!", 'nickname')
             except NoResultFound:
                 pass
 
