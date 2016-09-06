@@ -171,15 +171,15 @@ update_thread_request = {
         'type': 'integer'
     },
     'title': {
-        'required': False,
+        'required': True,
         'type': 'string'
     },
     'closed': {
-        'required': False,
+        'required': True,
         'type': 'boolean'
     },
     'sticky': {
-        'required': False,
+        'required': True,
         'type': 'boolean'
     },
 }
