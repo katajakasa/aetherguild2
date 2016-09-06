@@ -746,3 +746,76 @@ Response (server -> client), success:
     }
 }
 ```
+
+## 16.  Update forum section
+
+This command requires admin level privileges!
+
+Updates an existing forum section.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.update_section',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'section': <int Section ID>,
+        'title: <str Section title>,
+        'sort_index': <int Sort Index>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.update_section',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'section': {
+            'id': <int Section ID>,
+            'title: <str Section title>,
+            'sort_index': <int Sort Index>
+        }
+    }
+}
+```
+
+## 18. Update forum board
+
+This command requires admin level privileges!
+
+Updates an existing forum board.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.update_board',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': <int Board ID>,
+        'title': <str Board title>,
+        'description': <str Board description>,
+        'req_level': <int Required userlevel to see/edit/add/>,
+        'sort_index': <int Sorting index>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'forum.update_board',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'board': {
+            'id': <int Board ID>,
+            'section'; <int Section ID>,
+            'title': <str Board title>,
+            'description': <str Board description>,
+            'req_level': <int Required userlevel to see/edit/add/>,
+            'sort_index': <int Sorting index>
+        }
+    }
+}
+```

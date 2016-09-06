@@ -520,7 +520,30 @@ class ForumHandler(BaseHandler):
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(update_board_request)
     def update_board(self, track_route, message):
-        pass
+        board_id = message['data']['board']
+        title = message['data']['title']
+        description = message['data']['description']
+        req_level = message['data']['req_level']
+        sort_index = message['data']['sort_index']
+
+        # Make sure the board exists first
+        try:
+            board = ForumBoard.get_one(self.db, id=board_id)
+        except NoResultFound:
+            self.send_error(404, u"Board not found")
+            return
+
+        # Update content data
+        board.title = title
+        board.description = description
+        board.req_level = req_level
+        board.sort_index = sort_index
+        self.db.add(board)
+
+        # Just send the new object
+        self.send_message({
+            'board': board.serialize()
+        })
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(insert_section_request)
@@ -546,7 +569,26 @@ class ForumHandler(BaseHandler):
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(update_section_request)
     def update_section(self, track_route, message):
-        pass
+        section_id = message['data']['section']
+        title = message['data']['title']
+        sort_index = message['data']['sort_index']
+
+        # Make sure the section exists first
+        try:
+            section = ForumSection.get_one(self.db, id=section_id)
+        except NoResultFound:
+            self.send_error(404, u"Section not found")
+            return
+
+        # Update content data
+        section.title = title
+        section.sort_index = sort_index
+        self.db.add(section)
+
+        # Just send the new object
+        self.send_message({
+            'section': section.serialize()
+        })
 
     def _get_board(self, board_id=None, thread_id=None, post_id=None):
         if post_id and not thread_id and not board_id:

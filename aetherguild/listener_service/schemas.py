@@ -211,7 +211,7 @@ insert_board_request = {
 }
 
 update_board_request = {
-    'section': {
+    'board': {
         'type': 'integer',
         'required': True
     },
