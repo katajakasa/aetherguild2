@@ -434,22 +434,58 @@ class ForumHandler(BaseHandler):
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(delete_post_request)
     def delete_post(self, track_route, message):
-        pass
+        post_id = message['data']['post']
+
+        try:
+            post = ForumPost.get_one(self.db, id=post_id, deleted=False)
+            post.deleted = True
+            self.db.add(post)
+        except NoResultFound:
+            self.send_error(404, u"Post not found")
+
+        self.send_message({})
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(delete_thread_request)
     def delete_thread(self, track_route, message):
-        pass
+        thread_id = message['data']['thread']
+
+        try:
+            thread = ForumThread.get_one(self.db, id=thread_id, deleted=False)
+            thread.deleted = True
+            self.db.add(thread)
+        except NoResultFound:
+            self.send_error(404, u"Thread not found")
+
+        self.send_message({})
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(delete_board_request)
     def delete_board(self, track_route, message):
-        pass
+        board_id = message['data']['board']
+
+        try:
+            board = ForumBoard.get_one(self.db, id=board_id, deleted=False)
+            board.deleted = True
+            self.db.add(board)
+        except NoResultFound:
+            self.send_error(404, u"Board not found")
+
+        self.send_message({})
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(delete_section_request)
     def delete_section(self, track_route, message):
-        pass
+        section_id = message['data']['section']
+
+        try:
+            section = ForumSection.get_one(self.db, id=section_id, deleted=False)
+            section.deleted = True
+            self.db.add(section)
+        except NoResultFound:
+            self.send_error(404, u"Section not found")
+
+        self.send_message({})
 
     @has_level(LEVEL_ADMIN)
     @validate_message_schema(insert_board_request)
