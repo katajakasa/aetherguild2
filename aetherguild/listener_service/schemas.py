@@ -183,3 +183,115 @@ update_thread_request = {
         'type': 'boolean'
     },
 }
+
+insert_board_request = {
+    'section': {
+        'type': 'integer',
+        'required': True
+    },
+    'title': {
+        'type': 'string',
+        'required': True
+    },
+    'description': {
+        'type': 'string',
+        'required': True
+    },
+    'req_level': {
+        'type': 'integer',
+        'required': True,
+        'min': 0,
+        'max': 2
+    },
+    'sort_index': {
+        'type': 'integer',
+        'required': True,
+        'min': 0
+    }
+}
+
+update_board_request = {
+    'section': {
+        'type': 'integer',
+        'required': True
+    },
+    'title': {
+        'type': 'string',
+        'required': True
+    },
+    'description': {
+        'type': 'string',
+        'required': True
+    },
+    'req_level': {
+        'type': 'integer',
+        'required': True,
+        'min': 0,
+        'max': 2
+    },
+    'sort_index': {
+        'type': 'integer',
+        'required': True,
+        'min': 0
+    }
+}
+
+insert_section_request = {
+    'board': {
+        'type': 'integer',
+        'required': True
+    },
+    'title': {
+        'type': 'string',
+        'required': False
+    },
+    'sort_index': {
+        'type': 'integer',
+        'required': False,
+        'min': 0
+    }
+}
+
+update_section_request = {
+    'section': {
+        'type': 'integer',
+        'required': True
+    },
+    'title': {
+        'type': 'string',
+        'required': False
+    },
+    'sort_index': {
+        'type': 'integer',
+        'required': False,
+        'min': 0
+    }
+}
+
+delete_board = {
+    'board': {
+        'type': 'integer',
+        'required': True
+    }
+}
+
+delete_section = {
+    'section': {
+        'type': 'integer',
+        'required': True
+    }
+}
+
+delete_post = {
+    'post': {
+        'type': 'integer',
+        'required': True
+    }
+}
+
+delete_thread = {
+    'thread': {
+        'type': 'integer',
+        'required': True
+    }
+}
