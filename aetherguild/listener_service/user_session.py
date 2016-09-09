@@ -56,6 +56,10 @@ class UserSession(object):
             Session.delete(self.db, id=self.session.id)
 
     def close(self):
-        """ Close session object """
+        """ Close session object. Note! Does db commit! """
         if self.session:
             self.db.query(Session).filter_by(id=self.session.id).update({'activity_at': datetime.utcnow()})
+        if self.user:
+            self.db.query(User).filter_by(id=self.user.id).update({'last_contact': datetime.utcnow()})
+        if self.session or self.user:
+            self.db.commit()
