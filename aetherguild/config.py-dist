@@ -15,6 +15,9 @@ ALLOW_HOSTS = [
     'localhost'
 ]
 
+# For sentry logging
+SENTRY_URL = ''
+
 # Database configuration
 # !!! Use pymysql as a driver for utf8mb4 support
 # 1. mysql -u root -p

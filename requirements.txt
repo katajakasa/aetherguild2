@@ -9,3 +9,4 @@ tabulate==0.7.5
 loremipsum==1.0.5
 bleach==1.4.3
 cerberus==1.0.1
+raven==5.26.0
