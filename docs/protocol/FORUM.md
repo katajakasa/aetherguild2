@@ -67,7 +67,7 @@ Response (server -> client), success:
             'id': <int Board ID>,
             'posts_count': <int Post count on the board>,
             'threads_count': <int Thread count on the board>,
-            'last_post': {
+            'last_post': { # Null if there are no posts on the board
                 'id': <int Post ID>,
                 'thread': <int Thread ID to which post belongs to>,
                 'thread_title': <str Thread title>,
@@ -119,7 +119,7 @@ Response (server -> client), success:
                 'id': <int Board ID>,
                 'posts_count': <int Post count on the board>,
                 'threads_count': <int Thread count on the board>,
-                'last_post': {
+                'last_post': { # Null if there are no posts on the board
                     'id': <int Post ID>,
                     'thread': <int Thread ID to which post belongs to>,
                     'thread_title': <str Thread title>,
