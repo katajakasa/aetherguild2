@@ -15,9 +15,6 @@ ALLOW_HOSTS = [
     'localhost'
 ]
 
-# For sentry logging
-SENTRY_URL = ''
-
 # Database configuration
 # !!! Use pymysql as a driver for utf8mb4 support
 # 1. mysql -u root -p
@@ -32,17 +29,34 @@ DATABASE_CONFIG = 'mysql+pymysql://<username>:<password>@localhost/aetherguild2?
 # 3. rabbitmqctl set_permissions -p aetherguild2 <username> ".*" ".*" ".*"
 MQ_CONFIG = 'amqp://<username>:<password>@localhost:5672/aetherguild2/'
 
-# Logging level
-# 0 = DEBUG
-# 1 = INFO
-# 2 = WARNING
-# 3 = ERROR
-# 4 = CRITICAL
-LOG_LEVEL = 1
-
 # Do not change unless you know what you are doing
 PUBLIC_PATH = os.path.join(BASEDIR, "target")
 MQ_EXCHANGE = '/exchange/direct'
 MQ_TO_LISTENER = '/queue/to_listener'
 MQ_FROM_LISTENER = '/queue/from_listener'
 
+# Logging config
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '[%(asctime)s][%(levelname)s] %(message)s ',
+            'datefmt': '%d.%m.%Y %I:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    }
+}

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import sys
 import signal
+from logging.config import dictConfig
 
 from tornado import web, ioloop
 
@@ -12,22 +12,8 @@ from mq import MQConnection
 
 
 if __name__ == '__main__':
-    # Find correct log level
-    level = {
-        0: logging.DEBUG,
-        1: logging.INFO,
-        2: logging.WARNING,
-        3: logging.ERROR,
-        4: logging.CRITICAL
-    }[config.LOG_LEVEL]
-
     # Set up the global log
-    log_format = '[%(asctime)s] %(message)s'
-    log_datefmt = '%d.%m.%Y %I:%M:%S'
-    logging.basicConfig(stream=sys.stderr,
-                        level=level,
-                        format=log_format,
-                        datefmt=log_datefmt)
+    dictConfig(config.LOGGING)
     log = logging.getLogger(__name__)
     log.info("Opening server on %s:%d", config.ADDRESS, config.PORT)
 
