@@ -64,7 +64,15 @@ Response (server -> client), success:
             'section': <int Section ID>,
             'sort_index': <int Sort index>,
             'req_level': <int Required user level>,
-            'id': <int Board ID>
+            'id': <int Board ID>,
+            'posts_count': <int Post count on the board>,
+            'threads_count': <int Thread count on the board>,
+            'last_post': {
+                'id': <int Post ID>,
+                'thread_title': <str Thread title>,
+                'user_nickname': <str User name for the owner/creator of the post>,
+                'created_at': <iso8601 Creation date>,
+            }
         },
         {
             <...>
@@ -106,7 +114,15 @@ Response (server -> client), success:
                 'section': <int Section ID>,
                 'sort_index': <int Sort index>,
                 'req_level': <int Required user level>,
-                'id': <int Board ID>
+                'id': <int Board ID>,
+                'posts_count': <int Post count on the board>,
+                'threads_count': <int Thread count on the board>,
+                'last_post': {
+                    'id': <int Post ID>,
+                    'thread_title': <str Thread title>,
+                    'user_nickname': <str User name for the owner/creator of the post>,
+                    'created_at': <iso8601 Creation date>,
+                }
             },
             {
                 <...>

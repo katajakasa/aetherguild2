@@ -21,6 +21,46 @@ log = logging.getLogger(__name__)
 
 
 class ForumHandler(BaseHandler):
+    def _get_board_extra_data(self, board):
+        extra_data = {}
+
+        # Fetch board posts count
+        posts_count = self.db.query(func.count('*').label('count1')).filter(and_(
+            ForumPost.thread == ForumThread.id,
+            ForumThread.board == board.id,
+            ForumThread.deleted == False,
+            ForumPost.deleted == False
+        )).all()
+
+        # Fetch board thread count
+        threads_count = self.db.query(func.count('*').label('count1')).filter(and_(
+            ForumThread.board == board.id,
+            ForumThread.deleted == False,
+        )).all()
+
+        # Get board last post
+        last_post = self.db.query(ForumPost, ForumThread, User).filter(and_(
+            ForumPost.thread == ForumThread.id,
+            User.id == ForumPost.user,
+            ForumThread.board == board.id,
+            ForumPost.deleted == False,
+            ForumThread.deleted == False
+        )).order_by(ForumPost.id.desc()).first()
+
+        # Form a custom last post serialized object
+        last_post_ser = {
+            'id': last_post[0].id,
+            'created_at': arrow.get(last_post[0].created_at).isoformat(),
+            'thread_title': last_post[1].title,
+            'user_nickname': last_post[2].nickname
+        }
+
+        # Get correct objects from responses
+        extra_data['posts_count'] = posts_count[0][0]
+        extra_data['threads_count'] = threads_count[0][0]
+        extra_data['last_post'] = last_post_ser
+        return extra_data
+
     @validate_message_schema(get_boards_request)
     def get_boards(self, track_route, message):
         section_id = message['data'].get('section', None)
@@ -33,7 +73,9 @@ class ForumHandler(BaseHandler):
 
         out = []
         for board in boards:
-            out.append(board.serialize())
+            serialized = board.serialize()
+            serialized.update(self._get_board_extra_data(board))
+            out.append(serialized)
         self.send_message({'boards': out})
 
     def get_sections(self, track_route, message):
@@ -125,7 +167,9 @@ class ForumHandler(BaseHandler):
                 ForumBoard.deleted == False
             ))
             for board in boards:
-                out_section['boards'].append(board.serialize())
+                serialized_board = board.serialize()
+                serialized_board.update(self._get_board_extra_data(board))
+                out_section['boards'].append(serialized_board)
             out.append(out_section)
         self.send_message({'sections': out})
 
