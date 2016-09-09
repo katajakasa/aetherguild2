@@ -69,7 +69,9 @@ Response (server -> client), success:
             'threads_count': <int Thread count on the board>,
             'last_post': {
                 'id': <int Post ID>,
+                'thread': <int Thread ID to which post belongs to>,
                 'thread_title': <str Thread title>,
+                'user': <int User ID of the poster>
                 'user_nickname': <str User name for the owner/creator of the post>,
                 'created_at': <iso8601 Creation date>,
             }
@@ -119,7 +121,9 @@ Response (server -> client), success:
                 'threads_count': <int Thread count on the board>,
                 'last_post': {
                     'id': <int Post ID>,
+                    'thread': <int Thread ID to which post belongs to>,
                     'thread_title': <str Thread title>,
+                    'user': <int User ID of the poster>
                     'user_nickname': <str User name for the owner/creator of the post>,
                     'created_at': <iso8601 Creation date>,
                 }

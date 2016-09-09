@@ -48,12 +48,12 @@ class ForumHandler(BaseHandler):
         )).order_by(ForumPost.id.desc()).first()
 
         # Form a custom last post serialized object
-        last_post_ser = {
-            'id': last_post[0].id,
-            'created_at': arrow.get(last_post[0].created_at).isoformat(),
+        last_post_ser = last_post[0].serialize()
+        last_post_ser.update({
             'thread_title': last_post[1].title,
-            'user_nickname': last_post[2].nickname
-        }
+            'user_nickname': last_post[2].nickname,
+        })
+        del last_post_ser['message']  # No need to send, just reduce payload size
 
         # Get correct objects from responses
         extra_data['posts_count'] = posts_count[0][0]
