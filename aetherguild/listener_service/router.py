@@ -93,6 +93,7 @@ class MessageRouter(object):
                             'error_messages': [{'message': u'Server error'}]
                         }
                     }, connection_id=connection_id)
+                    log.exception("Server error while running message handler")
                 raise
             finally:
                 user_session.close()

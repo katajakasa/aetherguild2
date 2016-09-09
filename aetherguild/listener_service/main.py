@@ -37,6 +37,8 @@ if __name__ == '__main__':
         consumer.handle()
     except KeyboardInterrupt:
         pass
+    except:
+        log.exception("Error while running MQ listener")
     consumer.close()
 
     mq_connection.close()
