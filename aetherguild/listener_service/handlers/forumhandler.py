@@ -111,9 +111,14 @@ class ForumHandler(BaseHandler):
             return
 
         # Base query
-        base_query = self.db.query(ForumThread).filter(
+        posts_query = self.db.query(func.count('*').label('posts_count')).filter(and_(
+            ForumPost.thread == ForumThread.id,
+            ForumPost.deleted == False
+        ))
+        base_query = self.db.query(ForumThread, posts_query.as_scalar()).filter(
             ForumThread.board == board_id,
-            ForumThread.deleted == False)
+            ForumThread.deleted == False
+        )
 
         # Get threads + thread count, apply limit and offset if required in args
         threads_count = base_query.count()
@@ -125,9 +130,12 @@ class ForumHandler(BaseHandler):
 
         thread_list = []
         user_list = {}
-        for thread in threads:
+        for thread, posts_count in threads:
             # Serialize thread contents
             data = thread.serialize()
+
+            # Insert post count
+            data['posts_count'] = posts_count
 
             # Add user to the users list if not yet there
             if thread.user not in user_list:
