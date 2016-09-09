@@ -234,10 +234,6 @@ class ForumHandler(BaseHandler):
                 data['edits'].append(edit.serialize())
             post_list.append(data)
 
-        # Increment thread views count
-        thread.views += 1
-        self.db.add(thread)
-
         self.send_message({
             'board': board.serialize(),
             'thread': thread.serialize(),
