@@ -48,12 +48,15 @@ class ForumHandler(BaseHandler):
         )).order_by(ForumPost.id.desc()).first()
 
         # Form a custom last post serialized object
-        last_post_ser = last_post[0].serialize()
-        last_post_ser.update({
-            'thread_title': last_post[1].title,
-            'user_nickname': last_post[2].nickname,
-        })
-        del last_post_ser['message']  # No need to send, just reduce payload size
+        if last_post:
+            last_post_ser = last_post[0].serialize()
+            last_post_ser.update({
+                'thread_title': last_post[1].title,
+                'user_nickname': last_post[2].nickname,
+            })
+            del last_post_ser['message']  # No need to send, just reduce payload size
+        else:
+            last_post_ser = None
 
         # Get correct objects from responses
         extra_data['posts_count'] = posts_count[0][0]
@@ -103,14 +106,14 @@ class ForumHandler(BaseHandler):
 
         # Check if user has rights to the board. Fake out 404 if not.
         board = self._get_board(board_id=board_id)
-        print(board.serialize())
         if not board or not self._has_rights_to_board(board):
             self.send_error(404, "Board not Found")
             return
 
         # Base query
-        base_query = self.db.query(ForumThread) \
-            .filter(ForumThread.board == board_id, ForumThread.deleted == False)
+        base_query = self.db.query(ForumThread).filter(
+            ForumThread.board == board_id,
+            ForumThread.deleted == False)
 
         # Get threads + thread count, apply limit and offset if required in args
         threads_count = base_query.count()
