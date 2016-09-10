@@ -77,8 +77,8 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
 class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "news_item"
     id = Column(Integer, primary_key=True)
-    alias = Column(String(32), nullable=False)
-    post = Column(Text, nullable=False)
+    nickname = Column(String(32), nullable=False)
+    message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 

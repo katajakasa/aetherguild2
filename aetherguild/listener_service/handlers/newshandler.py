@@ -74,8 +74,8 @@ class NewsHandler(BaseHandler):
 
         # Create the new post
         post = NewsItem()
-        post.alias = self.session.user.nickname
-        post.post = msg
+        post.nickname = self.session.user.nickname
+        post.message = msg
         self.db.add(post)
         self.db.flush()
 
@@ -127,7 +127,7 @@ class NewsHandler(BaseHandler):
             return
 
         # Update content
-        post.post = msg
+        post.message = msg
         self.db.add(post)
 
         # Serialize and send the news post
