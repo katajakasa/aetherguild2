@@ -184,6 +184,7 @@ Response (server -> client), success:
             }
         ],
         'threads_count': <int Total amount of threads>,
+        'posts_count': <int Total amount of posts>,
         'threads': [
         {
             'id': <int Thread ID>,
