@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from cerberus import Validator
+
+log = logging.getLogger(__name__)
 
 
 def has_level(level):
@@ -89,8 +92,9 @@ class BaseHandler(object):
             while type(cb) == dict:
                 cb = cb[track_route.pop(0)]
             cb(track_route, message)
-        except IndexError:
+        except (IndexError, KeyError):
             self.send_error(404, u'Route not found')
+            log.exception(u"Route not found")
 
     def send(self, message, is_control=False):
         assert type(message) == dict, "Message type must be dict"
