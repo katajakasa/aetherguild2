@@ -8,10 +8,7 @@ from sqlalchemy import func, and_
 from sqlalchemy.orm.exc import NoResultFound
 
 from basehandler import BaseHandler, is_authenticated, has_level, validate_message_schema, ErrorList
-from aetherguild.listener_service.schemas import get_boards_request, get_threads_request, get_posts_request,\
-    get_post_request, insert_post_request, insert_thread_request, update_post_request, update_thread_request,\
-    delete_post_request, delete_thread_request, delete_board_request, delete_section_request, insert_section_request,\
-    insert_board_request, update_section_request, update_board_request, update_thread_views_request
+from aetherguild.listener_service.schemas.forum import *
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
 from utils import validate_str_length, validate_required_field

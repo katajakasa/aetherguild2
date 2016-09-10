@@ -7,9 +7,10 @@ from cerberus import Validator
 from handlers.authhandler import AuthHandler
 from handlers.forumhandler import ForumHandler
 from handlers.adminhandler import AdminHandler
+from handlers.newshandler import NewsHandler
 from user_session import UserSession
 from mq_session import MQSession
-from schemas import base_request
+from schemas.base import base_request
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class MessageRouter(object):
             'auth': AuthHandler,
             'forum': ForumHandler,
             'admin': AdminHandler,
+            'news': NewsHandler,
             None: None
         }
 

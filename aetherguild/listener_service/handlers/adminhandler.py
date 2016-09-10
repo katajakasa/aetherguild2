@@ -7,7 +7,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from aetherguild.listener_service.tables import User, Session
 from aetherguild.listener_service.user_session import LEVEL_ADMIN
 from basehandler import BaseHandler, validate_message_schema, has_level
-from aetherguild.listener_service.schemas import get_users_request, delete_user_request
+from aetherguild.listener_service.schemas.admin import *
 
 log = logging.getLogger(__name__)
 

@@ -11,8 +11,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from aetherguild.listener_service.tables import User, Session
 from aetherguild.listener_service.user_session import UserSession, LEVEL_USER, LEVEL_GUEST
 from basehandler import BaseHandler, ErrorList, is_authenticated, validate_message_schema
-from aetherguild.listener_service.schemas import login_request, register_request, update_profile_request,\
-    authenticate_request
+from aetherguild.listener_service.schemas.auth import *
 from utils import validate_str_length, validate_required_field, validate_password_field
 
 log = logging.getLogger(__name__)
