@@ -841,3 +841,19 @@ Response (server -> client), success:
     }
 }
 ```
+
+## 19. Update thread view count
+
+This increments the view count for the thread by one. Fire-and-forget
+call, this will not send a response, even if receipt field is given.
+
+Request (client -> server):
+```
+{
+    'route': 'forum.update_thread_views',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'thread': <int Thread ID>,
+    }
+}
+```

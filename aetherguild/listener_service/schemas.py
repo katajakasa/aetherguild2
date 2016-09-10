@@ -109,6 +109,13 @@ get_posts_request = {
     },
 }
 
+update_thread_views_request = {
+    'thread': {
+        'required': True,
+        'type': 'integer'
+    }
+}
+
 get_post_request = {
     'post': {
         'type': 'integer',

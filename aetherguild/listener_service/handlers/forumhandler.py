@@ -11,7 +11,7 @@ from basehandler import BaseHandler, is_authenticated, has_level, validate_messa
 from aetherguild.listener_service.schemas import get_boards_request, get_threads_request, get_posts_request,\
     get_post_request, insert_post_request, insert_thread_request, update_post_request, update_thread_request,\
     delete_post_request, delete_thread_request, delete_board_request, delete_section_request, insert_section_request,\
-    insert_board_request, update_section_request, update_board_request
+    insert_board_request, update_section_request, update_board_request, update_thread_views_request
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
 from utils import validate_str_length, validate_required_field
@@ -183,6 +183,16 @@ class ForumHandler(BaseHandler):
                 out_section['boards'].append(serialized_board)
             out.append(out_section)
         self.send_message({'sections': out})
+
+    @validate_message_schema(update_thread_views_request)
+    def update_thread_views(self, track_route, message):
+        thread_id = message['data']['thread']
+        try:
+            thread = ForumThread.get_one(self.db, id=thread_id)
+            thread.views += 1
+            self.db.add(thread)
+        except NoResultFound:
+            pass
 
     @validate_message_schema(get_posts_request)
     def get_posts(self, track_route, message):
@@ -680,6 +690,7 @@ class ForumHandler(BaseHandler):
             'get_threads': self.get_threads,
             'get_posts': self.get_posts,
             'get_post': self.get_post,
+            'update_thread_views': self.update_thread_views,
             'update_thread': self.update_thread,
             'insert_thread': self.insert_thread,
             'delete_thread': self.delete_thread,
