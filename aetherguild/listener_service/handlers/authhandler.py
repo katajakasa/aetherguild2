@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import os
-import binascii
+import tempfile
 
+import requests
+from PIL import Image
 import bleach
 from passlib.hash import pbkdf2_sha512
 from sqlalchemy.orm.exc import NoResultFound
 
-from aetherguild.listener_service.tables import User, Session
+from aetherguild.listener_service.tables import User, Session, File
 from aetherguild.listener_service.user_session import UserSession, LEVEL_USER, LEVEL_GUEST
 from basehandler import BaseHandler, ErrorList, is_authenticated, validate_message_schema
 from aetherguild.listener_service.schemas.auth import *
+from aetherguild.common.utils import generate_random_key
 from utils import validate_str_length, validate_required_field, validate_password_field
+from aetherguild import config
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +25,7 @@ class AuthHandler(BaseHandler):
     def login(self, track_route, message):
         username = message['data']['username']
         password = message['data']['password']
-        key = binascii.hexlify(os.urandom(16))
+        key = generate_random_key()
 
         # Find the user by username, fail with error if not found
         try:
@@ -165,6 +168,100 @@ class AuthHandler(BaseHandler):
         })
 
     @is_authenticated
+    @validate_message_schema(set_avatar_request)
+    def update_avatar(self, track_route, message):
+        avatar_url = message['data']['url']
+
+        try:
+            r = requests.get(avatar_url, stream=True, timeout=config.AVATAR_REQUIREMENTS['connection_timeout'])
+        except requests.exceptions.ConnectionError as ex:
+            self.send_error(450, ErrorList(u"Unable to fetch the image: Unable to connect to host", 'url'))
+            log.exception(u"Unable to fetch the image: Unable to connect to host", exc_info=ex)
+            return
+        except requests.exceptions.Timeout as ex:
+            self.send_error(450, ErrorList(u"Unable to fetch the image: Connection timeout", 'url'))
+            log.exception(u"Unable to fetch the image: Connection timeout", exc_info=ex)
+            return
+        except (requests.exceptions.URLRequired,
+                requests.exceptions.MissingSchema,
+                requests.exceptions.InvalidSchema,
+                requests.exceptions.InvalidURL) as ex:
+            self.send_error(450, ErrorList(u"Unable to fetch the image: Invalid URL", 'url'))
+            log.exception(u"Unable to fetch the image: Invalid URL", exc_info=ex)
+            return
+        except requests.exceptions.RequestException as ex:
+            self.send_error(450, ErrorList(u"Unable to fetch the image", 'url'))
+            log.exception(u"Unable to fetch the image", exc_info=ex)
+            return
+
+        # Attempt to fetch the image content to a temp file
+        max_size = config.AVATAR_REQUIREMENTS['max_size']
+        done_size = 0
+        chunk_size = 1024
+        with tempfile.NamedTemporaryFile() as tmp:
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                if done_size > max_size:
+                    self.send_error(450, ErrorList(u"Unable to fetch the image: File size exceeds 5 megabytes", 'url'))
+                    log.warning(u"Unable to fetch the image: File size exceeds 5 megabytes")
+                    break
+                if chunk:
+                    done_size += chunk_size
+                    tmp.write(chunk)
+            r.close()
+
+            # Open up the image and detect type
+            tmp.seek(0)
+            try:
+                img = Image.open(tmp)
+            except IOError as ex:
+                self.send_error(450, ErrorList(u"Given URL does not contain a valid imagefile", 'url'))
+                log.exception(u"Given URL does not contain a valid imagefile", exc_info=ex)
+                return
+
+            # Make sure somebody is not size/decompression bombing us
+            max_input_size = [
+                config.AVATAR_REQUIREMENTS['max_input_width'],
+                config.AVATAR_REQUIREMENTS['max_input_height']
+            ]
+            if img.width >= max_input_size[0] or img.height >= max_input_size[1]:
+                self.send_error(450, ErrorList(u"Image is too large; Maximum size is 2048x2048", 'url'))
+                return
+
+            # Thumbnail it
+            max_output_size = [
+                config.AVATAR_REQUIREMENTS['max_output_width'],
+                config.AVATAR_REQUIREMENTS['max_output_height']
+            ]
+            if img.width >= max_output_size[0] or img.height >= max_output_size[1]:
+                img.thumbnail(max_output_size)
+
+            # Create a new database entry
+            ext = img.format.lower()
+            db_file = File(ext)
+            db_file.owner = self.session.user.id
+            self.db.add(db_file)
+            self.db.flush()
+
+            # Update user, too
+            self.session.user.avatar = db_file.key
+            self.db.add(self.session.user)
+
+            # Save file to final destination
+            out_format = 'PNG' if img.format == 'PNG' else 'JPEG'
+            try:
+                img.save(db_file.get_local_path(), out_format)
+            except IOError as ex:
+                self.db.rollback()
+                log.exception("Unable to save image.", exc_info=ex)
+                self.send_error(450, ErrorList(u"Unable to save image; try again later", 'url'))
+                return
+
+            # Things have come this far, everything must be okay. Re-send user information.
+            self.send_message({
+                'user': self.session.user.serialize()
+            })
+
+    @is_authenticated
     def get_profile(self, track_route, message):
         self.send_message({
             'user': self.session.user.serialize()
@@ -213,5 +310,6 @@ class AuthHandler(BaseHandler):
             'authenticate': self.authenticate,
             'register': self.register,
             'update_profile': self.update_profile,
-            'get_profile': self.get_profile
+            'get_profile': self.get_profile,
+            'update_avatar': self.update_avatar
         }

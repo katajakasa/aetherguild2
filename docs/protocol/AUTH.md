@@ -55,6 +55,7 @@ Response (server -> client):
         'session_key': '<str Session key>',
         'user': {
             'id': <int User ID>,
+            'avatar': <str Avatar image url>,
             'username': <str Username>,
             'nickname': <str User nickname>,
             'level': <int User level>,
@@ -158,6 +159,7 @@ Response (server -> client), success:
     'data': {
         'user': {
             'id': <int User ID>,
+            'avatar': <str Avatar image url>,
             'nickname': <str Nickname>,
             'level': <int User level>,
             'created_at': <iso8601 User creation date>,
@@ -191,6 +193,7 @@ Response (server -> client), success:
     'data': {
         'user': {
             'id': <int User ID>,
+            'avatar': <str Avatar image url>,
             'nickname': <str Nickname>,
             'level': <int User level>,
             'created_at': <iso8601 User creation date>,

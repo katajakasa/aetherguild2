@@ -10,3 +10,5 @@ loremipsum==1.0.5
 bleach==1.4.3
 cerberus==1.0.1
 raven==5.26.0
+pillow>=3.3.0
+requests>=2.9.0

@@ -15,6 +15,22 @@ ALLOW_HOSTS = [
     'localhost'
 ]
 
+# Local path for uploaded files
+UPLOAD_LOCAL_PATH = os.path.join(BASEDIR, '/uploads')
+
+# Public path for the files (Remember to add trailing slash)
+UPLOAD_PUBLIC_PATH = '/uploads/'
+
+# Requirements for avatar
+AVATAR_REQUIREMENTS = {
+    'max_size': 5 * 1024 * 1024,  # Avatar max size when downloading, in bytes
+    'max_input_width': 2048,  # Max input file width in pixels (bigger will error out)
+    'max_input_height': 2048,  # Max input file height in pixels (bigger will error out)
+    'connection_timeout': 0.5,  # In seconds, how long can connecting take
+    'max_output_width': 300,  # If image is bigger than this in width, it will be resized
+    'max_output_height': 300,  # If image is bigger than this in width, it will be resized
+}
+
 # Database configuration
 # !!! Use pymysql as a driver for utf8mb4 support
 # 1. mysql -u root -p

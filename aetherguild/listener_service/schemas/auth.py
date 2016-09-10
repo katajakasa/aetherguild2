@@ -50,3 +50,10 @@ authenticate_request = {
         'required': True
     }
 }
+
+set_avatar_request = {
+    'url': {
+        'type': 'string',
+        'required': True
+    }
+}

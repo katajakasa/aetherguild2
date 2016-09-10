@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
+import os
+
 import arrow
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
+
+from aetherguild.common.utils import generate_random_key
+from aetherguild import config
 
 Base = declarative_base()
 
@@ -34,6 +39,7 @@ class ModelFormatMixin(object):
 class User(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
+    avatar = Column(ForeignKey('file.key'), nullable=True)
     username = Column(String(32), unique=True, nullable=False)
     password = Column(String(256), nullable=False)
     nickname = Column(String(32), nullable=False)
@@ -45,6 +51,7 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     def serialize(self, include_username=False, include_deleted=False):
         out = {
             'id': self.id,
+            'avatar': File.format_public_path(self.avatar),
             'nickname': self.nickname,
             'level': self.level,
             'created_at': arrow.get(self.created_at).isoformat(),
@@ -71,6 +78,44 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
             'created_at': arrow.get(self.created_at).isoformat(),
             'activity_at': arrow.get(self.activity_at).isoformat(),
             'user': self.user
+        }
+
+
+class File(Base, ModelHelperMixin, ModelFormatMixin):
+    __tablename__ = "file"
+    id = Column(Integer, primary_key=True)
+    key = Column(String(32), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    owner = Column(ForeignKey('user.id'), nullable=True, default=None)
+
+    def __init__(self, ext, *args, **kwargs):
+        self.key = u"{}.{}".format(generate_random_key()[:16], ext)
+        super(File, self).__init__(*args, **kwargs)
+
+    @staticmethod
+    def format_local_path(filename):
+        if not filename:
+            return None
+        return os.path.join(config.UPLOAD_LOCAL_PATH, filename)
+
+    @staticmethod
+    def format_public_path(filename):
+        if not filename:
+            return None
+        return u"{}{}".format(config.UPLOAD_PUBLIC_PATH, filename)
+
+    def get_local_path(self):
+        return self.format_local_path(self.key)
+
+    def get_public_path(self):
+        return self.format_public_path(self.key)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'key': self.key,
+            'created_at': arrow.get(self.created_at).isoformat(),
+            'owner': self.owner
         }
 
 

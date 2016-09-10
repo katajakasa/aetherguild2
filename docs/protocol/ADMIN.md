@@ -29,6 +29,7 @@ Response (server -> client), success:
         'users': [
         {
             'id': <int User ID>,
+            'avatar': <str Avatar image url>,
             'nickname': <str Nickname>,
             'level': <int User level>,
             'created_at': <iso8601 User creation date>,
