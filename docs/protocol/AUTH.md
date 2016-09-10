@@ -202,3 +202,40 @@ Response (server -> client), success:
     }
 }
 ```
+
+## 7. Setting avatar
+
+Requests the server to download an avatar image from the internet and save
+it to disk, then set it as the profile image for the user.
+
+To run this command, user must have a valid session (be logged in).
+
+Request (client -> server):
+```
+{
+    'route': 'auth.update_avatar',
+    'receipt': <variable Receipt ID>,  # Optional
+    'data': {
+        'url': <str Valid image url to fetch>
+    }
+}
+```
+
+Response (server -> client), success:
+```
+{
+    'route': 'auth.update_avatar',
+    'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
+    'error': false,
+    'data': {
+        'user': {
+            'id': <int User ID>,
+            'avatar': <str Avatar image url>,
+            'nickname': <str Nickname>,
+            'level': <int User level>,
+            'created_at': <iso8601 User creation date>,
+            'last_contact': <iso8601 Last contact with user>
+        }
+    }
+}
+```
