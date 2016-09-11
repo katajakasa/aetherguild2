@@ -28,6 +28,7 @@ register_request = {
     },
     'profile_data': {
         'type': 'dict',
+        'required': True,
         'allow_unknown': True,
         'schema': {},
     }
@@ -49,6 +50,7 @@ update_profile_request = {
     },
     'profile_data': {
         'type': 'dict',
+        'required': True,
         'allow_unknown': True,
         'schema': {}
     }
