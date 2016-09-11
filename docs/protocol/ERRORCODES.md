@@ -5,6 +5,7 @@
 * 500: Server error. Server side bug.
 * 400: Bad request. Your request was badly formed; client side bug.
 * 401: Login failure; need to authenticate
+* 403: Forbidden
 * 450: Validation error. User supplied bad information in fields. User error.
 
 ## Error response format

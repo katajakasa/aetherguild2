@@ -2,6 +2,7 @@
 
 import logging
 import tempfile
+import json
 
 import requests
 from PIL import Image
@@ -58,7 +59,7 @@ class AuthHandler(BaseHandler):
             # Send authentication successful packet to the web client
             self.send_message({
                 'session_key': key,
-                'user': user.serialize()
+                'user': user.serialize(include_profile=True)
             })
 
             # Broadcast to other users that this one has logged in
@@ -75,6 +76,7 @@ class AuthHandler(BaseHandler):
         username = message['data']['username']
         password = message['data']['password']
         nickname = bleach.clean(message['data']['nickname'])
+        profile_data = json.dumps(message['data']['profile_data'])
         errors_list = ErrorList()
 
         validate_str_length('username', username, errors_list, 4, 32)
@@ -108,6 +110,7 @@ class AuthHandler(BaseHandler):
         user = User()
         user.username = username
         user.nickname = nickname
+        user.profile_data = profile_data
         user.level = LEVEL_GUEST
         user.active = True
         user.password = pbkdf2_sha512.encrypt(password)
@@ -122,6 +125,7 @@ class AuthHandler(BaseHandler):
         new_password = message['data'].get('new_password')
         old_password = message['data'].get('old_password')
         nickname = message['data']['nickname']
+        profile_data = json.dumps(message['data']['profile_data'])
         errors_list = ErrorList()
 
         # If user wants to change password, handle the checks
@@ -152,19 +156,19 @@ class AuthHandler(BaseHandler):
             except NoResultFound:
                 pass
 
-        # Don't change anything if there are errors
-        if not errors_list.get_list():
-            self.session.user.nickname = nickname
-            self.db.add(self.session.user)
-
         # got validation errors, fail here
         if errors_list.get_list():
             self.send_error(450, errors_list)
             return
 
+        # Save changes
+        self.session.user.nickname = nickname
+        self.session.user.profile_data = profile_data
+        self.db.add(self.session.user)
+
         # On success, return the current user object
         self.send_message({
-            'user': self.session.user.serialize()
+            'user': self.session.user.serialize(include_profile=True)
         })
 
     @is_authenticated
@@ -258,13 +262,13 @@ class AuthHandler(BaseHandler):
 
             # Things have come this far, everything must be okay. Re-send user information.
             self.send_message({
-                'user': self.session.user.serialize()
+                'user': self.session.user.serialize(include_profile=True)
             })
 
     @is_authenticated
     def get_profile(self, track_route, message):
         self.send_message({
-            'user': self.session.user.serialize()
+            'user': self.session.user.serialize(include_profile=True)
         })
 
     @is_authenticated
@@ -293,7 +297,7 @@ class AuthHandler(BaseHandler):
             # Send authentication successful packet to the web client
             self.send_message({
                 'session_key': key,
-                'user': user_session.user.serialize()
+                'user': user_session.user.serialize(include_profile=True)
             })
 
             # Broadcast to other users that this one has logged in

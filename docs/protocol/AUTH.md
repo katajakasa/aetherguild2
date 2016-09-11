@@ -25,6 +25,17 @@ Response (server -> client):
     'error': false,
     'data': {
         'session_key': <str Session key>,
+        'user': {
+            'id': <int User ID>,
+            'avatar': <str Avatar image url>,
+            'username': <str Username>,
+            'nickname': <str User nickname>,
+            'level': <int User level>,
+            'active': <bool Is user active>,
+            'created_at': <str User creation timestamp>,
+            'profile_data': <dict User profile data>,
+            'last_contact': <str User last contact timestamp>
+        }
     }
 }
 ```
@@ -61,6 +72,7 @@ Response (server -> client):
             'level': <int User level>,
             'active': <bool Is user active>,
             'created_at': <str User creation timestamp>,
+            'profile_data': <dict User profile data>,
             'last_contact': <str User last contact timestamp>
         }
     }
@@ -69,8 +81,9 @@ Response (server -> client):
 
 ## 3. Logout
 
-Requests the server to invalidate the current authenticated session. All user privileges are dropped, all operations
-requiring authorization will fail after this to error 403.
+Requests the server to invalidate the current authenticated session.
+All user privileges are dropped, all operations requiring authorization
+will fail after this to error 403.
 
 To run this command, user must have a valid session (be logged in).
 
@@ -93,9 +106,6 @@ Response (server -> client), success:
 }
 ```
 
-Possible response error codes:
-* 403: Forbidden
-
 ## 4. Registration
 
 Requests the server to register a new username/password combination.
@@ -103,6 +113,8 @@ If registration fails, a specific error is returned. Field requirements:
 * Username must not be reserved, and must be 4-32 characters long.
 * Nickname must not be reserved, and must be 2-32 characters long.
 * Password must be 8 characters long. No upper limit.
+
+Profile data field can be used to save a freeform JSON dict to the server.
 
 Request (client -> server):
 ```
@@ -113,6 +125,7 @@ Request (client -> server):
         'username': <str Username>,
         'password': <str Password>,
         'nickname': <str Nickname>,
+        'profile_data': <dict Freeform profile data>
     }
 }
 ```
@@ -135,6 +148,8 @@ If registration fails, a specific error is returned. Field requirements:
 * New password must be 8 characters long. No upper limit.
 * Old password must match the users current password.
 
+Profile data field can be used to save a freeform JSON dict to the server.
+
 To run this command, user must have a valid session (be logged in).
 
 Request (client -> server):
@@ -146,6 +161,7 @@ Request (client -> server):
         'new_password': <str New password, Optional>,
         'old_password': <str Old, valid password. Mandatory if new_password is supplied>,
         'nickname': <str New nickname. Mandatory>,
+        'profile_data': <dict User profile data, Mandatory>
     }
 }
 ```
@@ -163,6 +179,7 @@ Response (server -> client), success:
             'nickname': <str Nickname>,
             'level': <int User level>,
             'created_at': <iso8601 User creation date>,
+            'profile_data': <dict User profile data>,
             'last_contact': <iso8601 Last contact with user>
         }
     }
@@ -197,6 +214,7 @@ Response (server -> client), success:
             'nickname': <str Nickname>,
             'level': <int User level>,
             'created_at': <iso8601 User creation date>,
+            'profile_data': <dict User profile data>,
             'last_contact': <iso8601 Last contact with user>
         }
     }
@@ -234,6 +252,7 @@ Response (server -> client), success:
             'nickname': <str Nickname>,
             'level': <int User level>,
             'created_at': <iso8601 User creation date>,
+            'profile_data': <dict User profile data>,
             'last_contact': <iso8601 Last contact with user>
         }
     }

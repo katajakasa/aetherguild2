@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import os
+import json
 
 import arrow
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint
@@ -46,9 +47,10 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     level = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     last_contact = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    profile_data = Column(Text, default=u'{}', nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
-    def serialize(self, include_username=False, include_deleted=False):
+    def serialize(self, include_username=False, include_deleted=False, include_profile=False):
         out = {
             'id': self.id,
             'avatar': File.format_public_path(self.avatar),
@@ -57,6 +59,8 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
             'created_at': arrow.get(self.created_at).isoformat(),
             'last_contact': arrow.get(self.last_contact).isoformat()
         }
+        if include_profile:
+            out['profile_data'] = json.loads(self.profile_data)
         if include_username:
             out['username'] = self.username
         if include_deleted:
@@ -84,7 +88,7 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
 class File(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "file"
     id = Column(Integer, primary_key=True)
-    key = Column(String(32), unique=True, nullable=False)
+    key = Column(String(24), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     owner = Column(ForeignKey('user.id'), nullable=True, default=None)
 
