@@ -17,7 +17,7 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('user', sa.Column('profile_data', sa.Text(), nullable=False))
+    op.add_column('user', sa.Column('profile_data', sa.Text(), nullable=False, server_default=u'{}'))
 
 
 def downgrade():
