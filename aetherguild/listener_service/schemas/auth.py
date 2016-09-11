@@ -25,6 +25,11 @@ register_request = {
     'nickname': {
         'type': 'string',
         'required': True
+    },
+    'profile_data': {
+        'type': 'dict',
+        'allow_unknown': True,
+        'schema': {},
     }
 }
 
@@ -41,6 +46,11 @@ update_profile_request = {
     'nickname': {
         'type': 'string',
         'required': True
+    },
+    'profile_data': {
+        'type': 'dict',
+        'allow_unknown': True,
+        'schema': {}
     }
 }
 
