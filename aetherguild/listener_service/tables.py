@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import json
 
+import bleach
 import arrow
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
@@ -62,7 +63,7 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
         if include_profile:
             out['profile_data'] = json.loads(self.profile_data)
         if include_username:
-            out['username'] = self.username
+            out['username'] = bleach.clean(self.username)
         if include_deleted:
             out['deleted'] = self.deleted
         return out
