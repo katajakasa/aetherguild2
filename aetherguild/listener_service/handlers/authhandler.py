@@ -242,7 +242,6 @@ class AuthHandler(BaseHandler):
             # Create a new database entry
             ext = img.format.lower()
             db_file = File(ext)
-            db_file.owner = self.session.user.id
             self.db.add(db_file)
             self.db.flush()
 

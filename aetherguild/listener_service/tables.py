@@ -6,7 +6,7 @@ import json
 
 import bleach
 import arrow
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint, Binary
 from sqlalchemy.ext.declarative import declarative_base
 
 from aetherguild.common.utils import generate_random_key
@@ -38,12 +38,19 @@ class ModelFormatMixin(object):
     mysql_charset = 'utf8mb4'
 
 
+class OldUser(Base, ModelHelperMixin, ModelFormatMixin):
+    __tablename__ = "olduser"
+    id = Column(Integer, primary_key=True)
+    user = Column(ForeignKey('user.id'), nullable=False)
+    password = Column(Binary(32), nullable=False)
+
+
 class User(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
-    avatar = Column(ForeignKey('file.key'), nullable=True)
+    avatar = Column(ForeignKey('file.key'), default=None, nullable=True)
     username = Column(String(32), unique=True, nullable=False)
-    password = Column(String(256), nullable=False)
+    password = Column(String(256), nullable=True, default=None)
     nickname = Column(String(32), nullable=False)
     level = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
@@ -91,7 +98,6 @@ class File(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     key = Column(String(24), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    owner = Column(ForeignKey('user.id'), nullable=True, default=None)
 
     def __init__(self, ext, *args, **kwargs):
         self.key = u"{}.{}".format(generate_random_key()[:16], ext)
@@ -119,8 +125,7 @@ class File(Base, ModelHelperMixin, ModelFormatMixin):
         return {
             'id': self.id,
             'key': self.key,
-            'created_at': arrow.get(self.created_at).isoformat(),
-            'owner': self.owner
+            'created_at': arrow.get(self.created_at).isoformat()
         }
 
 
