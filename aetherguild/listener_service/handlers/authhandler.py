@@ -56,10 +56,10 @@ class AuthHandler(BaseHandler):
 
         # Verify password
         password_matches = False
+        salted_old_pw = u'{}{}'.format(password, config.OLD_FORUM_SALT)
         if user.password and pbkdf2_sha512.verify(password, user.password):
             password_matches = True
-        elif not password_matches\
-                and hashlib.sha256(password+config.OLD_FORUM_SALT) == binascii.hexlify(old_user.password):
+        elif not password_matches and hashlib.sha256(salted_old_pw) == binascii.hexlify(old_user.password):
             password_matches = True
             # Save password to new user, delete OldUser
             user.password = pbkdf2_sha512.encrypt(password)
