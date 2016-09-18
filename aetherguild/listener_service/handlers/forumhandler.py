@@ -113,12 +113,10 @@ class ForumHandler(BaseHandler):
             ForumPost.thread == ForumThread.id,
             ForumPost.deleted == False
         ))
-        user_query = self.db.query(User).filter(and_(
-            ForumThread.user == User.id
-        ))
-        base_query = self.db.query(ForumThread, posts_query.as_scalar(), user_query).filter(
+        base_query = self.db.query(ForumThread, posts_query.as_scalar(), User).filter(
             ForumThread.board == board_id,
-            ForumThread.deleted == False
+            ForumThread.deleted == False,
+            User.id == ForumThread.user
         )
 
         # Get threads + thread count, apply limit and offset if required in args
