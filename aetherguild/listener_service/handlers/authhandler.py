@@ -56,17 +56,26 @@ class AuthHandler(BaseHandler):
 
         # Verify password
         password_matches = False
-        salted_old_pw = u'{}{}'.format(password, config.OLD_FORUM_SALT)
-        if user.password and pbkdf2_sha512.verify(password, user.password):
-            password_matches = True
-        elif not password_matches and hashlib.sha256(salted_old_pw) == binascii.hexlify(old_user.password):
-            password_matches = True
-            # Save password to new user, delete OldUser
-            user.password = pbkdf2_sha512.encrypt(password)
-            old_user.delete()
-            self.db.add(user)
 
-        # Password OK, boot up a session
+        # If we have OldUser, try logging with that first
+        if old_user:
+            m_hash = hashlib.sha256()
+            m_hash.update(password)
+            m_hash.update(config.OLD_FORUM_SALT)
+            old_hash = m_hash.hexdigest()
+            new_hash = binascii.hexlify(old_user.password)
+            if old_hash == new_hash:
+                # Save password to new user, delete OldUser
+                user.password = pbkdf2_sha512.encrypt(password)
+                OldUser.delete(self.db, id=old_user.id)
+                self.db.add(user)
+                password_matches = True
+
+        # ... otherwise just use the normal password.
+        if not old_user and pbkdf2_sha512.verify(password, user.password):
+            password_matches = True
+
+        # If password is OK, boot up a session
         if password_matches:
             # Create a new session to database
             # TODO: CLEANUP OLD SESSIONS
