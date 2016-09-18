@@ -3,6 +3,8 @@
 import logging
 import tempfile
 import json
+import binascii
+import hashlib
 
 import requests
 from PIL import Image
@@ -10,7 +12,7 @@ import bleach
 from passlib.hash import pbkdf2_sha512
 from sqlalchemy.orm.exc import NoResultFound
 
-from aetherguild.listener_service.tables import User, Session, File
+from aetherguild.listener_service.tables import User, Session, File, OldUser
 from aetherguild.listener_service.user_session import UserSession, LEVEL_USER, LEVEL_GUEST
 from basehandler import BaseHandler, ErrorList, is_authenticated, validate_message_schema
 from aetherguild.listener_service.schemas.auth import *
@@ -41,8 +43,31 @@ class AuthHandler(BaseHandler):
             log.warning(u"Login failed for user %s", username)
             return
 
-        # Make sure password matches
-        if pbkdf2_sha512.verify(password, user.password):
+        # If user has password set to None, the user is a migrated user.
+        # Attempt to find OldUser data.
+        old_user = None
+        if not user.password:
+            try:
+                old_user = OldUser.get_one(self.db, user=user.id)
+            except NoResultFound:
+                self.send_error(401, u"Wrong username and/or password")
+                log.warning(u"Login failed for user %s", username)
+                return
+
+        # Verify password
+        password_matches = False
+        if user.password and pbkdf2_sha512.verify(password, user.password):
+            password_matches = True
+        elif not password_matches\
+                and hashlib.sha256(password+config.OLD_FORUM_SALT) == binascii.hexlify(old_user.password):
+            password_matches = True
+            # Save password to new user, delete OldUser
+            user.password = pbkdf2_sha512.encrypt(password)
+            old_user.delete()
+            self.db.add(user)
+
+        # Password OK, boot up a session
+        if password_matches:
             # Create a new session to database
             # TODO: CLEANUP OLD SESSIONS
             s = Session()

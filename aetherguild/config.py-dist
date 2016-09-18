@@ -21,6 +21,9 @@ UPLOAD_LOCAL_PATH = os.path.join(BASEDIR, '/uploads')
 # Public path for the files (Remember to add trailing slash)
 UPLOAD_PUBLIC_PATH = '/uploads/'
 
+# Old forum password salt
+OLD_FORUM_SALT = ''
+
 # Requirements for avatar
 AVATAR_REQUIREMENTS = {
     'max_size': 5 * 1024 * 1024,  # Avatar max size when downloading, in bytes
