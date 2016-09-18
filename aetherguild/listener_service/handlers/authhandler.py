@@ -59,12 +59,11 @@ class AuthHandler(BaseHandler):
 
         # If we have OldUser, try logging with that first
         if old_user:
-            m_hash = hashlib.sha256()
-            m_hash.update(password)
-            m_hash.update(config.OLD_FORUM_SALT)
-            old_hash = m_hash.hexdigest()
+            old_hash = hashlib.sha256()
+            old_hash.update(password)
+            old_hash.update(config.OLD_FORUM_SALT)
             new_hash = binascii.hexlify(old_user.password)
-            if old_hash == new_hash:
+            if old_hash.hexdigest() == new_hash:
                 # Save password to new user, delete OldUser
                 user.password = pbkdf2_sha512.encrypt(password)
                 OldUser.delete(self.db, id=old_user.id)
