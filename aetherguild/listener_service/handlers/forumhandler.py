@@ -70,6 +70,7 @@ class ForumHandler(BaseHandler):
             .filter(ForumBoard.req_level <= self.session.get_level(), ForumBoard.deleted == False)
         if section_id:
             boards = boards.filter(ForumBoard.section == section_id)
+        boards = boards.order_by(ForumBoard.sort_index.asc())
 
         out = []
         for board in boards:
@@ -87,7 +88,7 @@ class ForumHandler(BaseHandler):
                 ForumBoard.req_level <= self.session.get_level(),
             )).as_scalar() > 0,
             ForumSection.deleted == False
-        ))
+        )).order_by(ForumSection.sort_index.asc())
 
         # Serialize and dump out
         out = []
@@ -112,7 +113,10 @@ class ForumHandler(BaseHandler):
             ForumPost.thread == ForumThread.id,
             ForumPost.deleted == False
         ))
-        base_query = self.db.query(ForumThread, posts_query.as_scalar()).filter(
+        user_query = self.db.query(User).filter(and_(
+            ForumThread.user == User.id
+        ))
+        base_query = self.db.query(ForumThread, posts_query.as_scalar(), user_query).filter(
             ForumThread.board == board_id,
             ForumThread.deleted == False
         )
@@ -127,7 +131,7 @@ class ForumHandler(BaseHandler):
 
         thread_list = []
         user_list = {}
-        for thread, posts_count in threads:
+        for thread, posts_count, user in threads:
             # Serialize thread contents
             data = thread.serialize()
 
@@ -135,8 +139,8 @@ class ForumHandler(BaseHandler):
             data['posts_count'] = posts_count
 
             # Add user to the users list if not yet there
-            if thread.user not in user_list:
-                user_list[thread.user] = User.get_one(self.db, id=thread.user).serialize()
+            if user.id not in user_list:
+                user_list[user.id] = user.serialize()
 
             # Fetch last_read information for this user and thread
             data['last_read'] = None
@@ -162,7 +166,7 @@ class ForumHandler(BaseHandler):
                 ForumBoard.req_level <= self.session.get_level()
             )).as_scalar() > 0,
             ForumSection.deleted == False
-        ))
+        )).order_by(ForumSection.sort_index.asc())
 
         # Iterate through sections, get boards for them
         out = []
@@ -173,7 +177,7 @@ class ForumHandler(BaseHandler):
                 ForumBoard.req_level <= self.session.get_level(),
                 ForumBoard.section == section.id,
                 ForumBoard.deleted == False
-            ))
+            )).order_by(ForumBoard.sort_index.asc())
             for board in boards:
                 serialized_board = board.serialize()
                 serialized_board.update(self._get_board_extra_data(board))
