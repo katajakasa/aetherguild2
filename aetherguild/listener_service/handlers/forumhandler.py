@@ -121,7 +121,7 @@ class ForumHandler(BaseHandler):
 
         # Get threads + thread count, apply limit and offset if required in args
         threads_count = base_query.count()
-        threads = base_query.order_by(ForumThread.created_at.desc())
+        threads = base_query.order_by(ForumThread.sticky.desc(), ForumThread.created_at.desc())
         if start:
             threads = threads.offset(start)
         if count:
