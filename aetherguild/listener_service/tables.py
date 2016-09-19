@@ -133,6 +133,7 @@ class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "news_item"
     id = Column(Integer, primary_key=True)
     nickname = Column(String(32), nullable=False)
+    header = Column(String(32), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
@@ -140,8 +141,9 @@ class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     def serialize(self):
         return {
             'id': self.id,
-            'alias': self.alias,
-            'post': self.post,
+            'nickname': self.nickname,
+            'header': self.header,
+            'message': self.message,
             'created_at': arrow.get(self.created_at).isoformat()
         }
 

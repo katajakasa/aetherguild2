@@ -9,6 +9,7 @@ from aetherguild.listener_service.tables import NewsItem
 from aetherguild.listener_service.user_session import LEVEL_ADMIN
 from basehandler import BaseHandler, validate_message_schema, has_level, ErrorList
 from aetherguild.listener_service.schemas.news import *
+from utils import validate_str_length
 
 log = logging.getLogger(__name__)
 
@@ -61,11 +62,12 @@ class NewsHandler(BaseHandler):
     @validate_message_schema(insert_news_posts_request)
     def insert_news_post(self, track_route, message):
         msg = bleach.clean(message['data']['message'])
+        header = bleach.clean(message['data']['header'])
         err_list = ErrorList()
 
-        # Make sure the message has at least some content
-        if len(msg) < 1:
-            err_list.add_error(u"Please fill in the news text", 'message')
+        # Make sure the message and header has at least some content
+        validate_str_length('message', msg, err_list, 1)
+        validate_str_length('header', header, err_list, 1, 32)
 
         # Send errors if any
         if err_list.get_list():
@@ -76,6 +78,7 @@ class NewsHandler(BaseHandler):
         post = NewsItem()
         post.nickname = self.session.user.nickname
         post.message = msg
+        post.header = header
         self.db.add(post)
         self.db.flush()
 
@@ -108,11 +111,12 @@ class NewsHandler(BaseHandler):
     def update_news_post(self, track_route, message):
         post_id = message['data']['post']
         msg = bleach.clean(message['data']['message'])
+        header = bleach.clean(message['data']['header'])
         err_list = ErrorList()
 
-        # Make sure the message has at least some content
-        if len(msg) < 1:
-            err_list.add_error(u"Please fill in the news text", 'message')
+        # Make sure the message and header has at least some content
+        validate_str_length('message', msg, err_list, 1)
+        validate_str_length('header', header, err_list, 1, 32)
 
         # Send errors if any
         if err_list.get_list():
@@ -128,6 +132,7 @@ class NewsHandler(BaseHandler):
 
         # Update content
         post.message = msg
+        post.header = header
         self.db.add(post)
 
         # Serialize and send the news post

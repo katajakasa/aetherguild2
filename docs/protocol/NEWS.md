@@ -28,6 +28,7 @@ Response (server -> client), success:
             'id': <int Post ID>,
             'nickname': <str Poster nickname>,
             'message': <int News item message content>,
+            'header': <str Message header>,
             'created_at': <iso8601 User creation date>,
         },
         {
@@ -65,6 +66,7 @@ Response (server -> client), success:
             'id': <int Post ID>,
             'nickname': <str Poster nickname>,
             'message': <int News item message content>,
+            'header': <str Message header>,
             'created_at': <iso8601 User creation date>,
         }
     },
@@ -85,6 +87,7 @@ Request (client -> server):
     'receipt': <variable Receipt ID>,  # Optional
     'data': {
         'message': <bool News item message text>,
+        'header': <str Message header>,
     }
 }
 ```
@@ -100,6 +103,7 @@ Response (server -> client), success:
             'id': <int Post ID>,
             'nickname': <str Poster nickname>,
             'message': <int News item message content>,
+            'header': <str Message header>,
             'created_at': <iso8601 User creation date>,
         }
     },
@@ -120,6 +124,7 @@ Request (client -> server):
     'data': {
         'post': <int Post ID>,
         'message': <bool News item message text>,
+        'header': <str Message header>,
     }
 }
 ```
@@ -135,6 +140,7 @@ Response (server -> client), success:
             'id': <int Post ID>,
             'nickname': <str Poster nickname>,
             'message': <int News item message content>,
+            'header': <str Message header>,
             'created_at': <iso8601 User creation date>,
         }
     },

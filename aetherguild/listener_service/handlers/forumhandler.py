@@ -112,16 +112,20 @@ class ForumHandler(BaseHandler):
         posts_query = self.db.query(func.count('*').label('posts_count')).filter(and_(
             ForumPost.thread == ForumThread.id,
             ForumPost.deleted == False
-        ))
-        base_query = self.db.query(ForumThread, posts_query.as_scalar(), User).filter(
+        )).as_scalar()
+        latest_post_query = self.db.query(func.max('created_at').label('max_post_date')).filter(and_(
+            ForumPost.thread == ForumThread.id,
+            ForumPost.deleted == False,
+        )).as_scalar()
+        base_query = self.db.query(ForumThread, posts_query, User, latest_post_query).filter(and_(
             ForumThread.board == board_id,
             ForumThread.deleted == False,
             User.id == ForumThread.user
-        )
+        ))
 
         # Get threads + thread count, apply limit and offset if required in args
         threads_count = base_query.count()
-        threads = base_query.order_by(ForumThread.sticky.desc(), ForumThread.created_at.desc())
+        threads = base_query.order_by(ForumThread.sticky.desc(), latest_post_query.desc())
         if start:
             threads = threads.offset(start)
         if count:
@@ -129,7 +133,7 @@ class ForumHandler(BaseHandler):
 
         thread_list = []
         user_list = {}
-        for thread, posts_count, user in threads:
+        for thread, posts_count, user, last_post_date in threads:
             # Serialize thread contents
             data = thread.serialize()
 

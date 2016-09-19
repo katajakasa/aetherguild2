@@ -24,6 +24,10 @@ insert_news_posts_request = {
     'message': {
         'type': 'string',
         'required': True
+    },
+    'header': {
+        'type': 'string',
+        'required': True
     }
 }
 
@@ -40,6 +44,10 @@ update_news_post_request = {
         'required': True
     },
     'message': {
+        'type': 'string',
+        'required': True
+    },
+    'header': {
         'type': 'string',
         'required': True
     }
