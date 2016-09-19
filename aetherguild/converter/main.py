@@ -132,5 +132,16 @@ if __name__ == '__main__':
         dst_session.flush()
         print(u"[post   ] {} migrated".format(new_post.id))
 
+    # Transfer news items
+    for old_news in old_tables.NewsModel.get_many(src_session):
+        new_news = new_tables.NewsItem()
+        new_news.nickname = "Akvavitix"
+        new_news.header = old_news.header
+        new_news.message = old_news.message
+        new_news.created_at = old_news.time
+        dst_session.add(new_news)
+        dst_session.flush()
+        print(u"[news   ] {} migrated".format(new_news.id))
+
     # Commit all changes
     dst_session.commit()
