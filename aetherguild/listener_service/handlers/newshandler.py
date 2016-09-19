@@ -116,7 +116,7 @@ class NewsHandler(BaseHandler):
 
         # Make sure the message and header has at least some content
         validate_str_length('message', msg, err_list, 1)
-        validate_str_length('header', header, err_list, 1, 32)
+        validate_str_length('header', header, err_list, 1, 64)
 
         # Send errors if any
         if err_list.get_list():
