@@ -113,7 +113,7 @@ class ForumHandler(BaseHandler):
             ForumPost.thread == ForumThread.id,
             ForumPost.deleted == False
         )).as_scalar()
-        latest_post_query = self.db.query(func.max('created_at').label('max_post_date')).filter(and_(
+        latest_post_query = self.db.query(func.max('id').label('max_post_date')).filter(and_(
             ForumPost.thread == ForumThread.id,
             ForumPost.deleted == False,
         )).as_scalar()

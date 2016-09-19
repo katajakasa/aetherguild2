@@ -2,6 +2,7 @@
 
 import sys
 
+import arrow
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -25,8 +26,8 @@ if __name__ == '__main__':
         exit(1)
 
     # Connect to destination database
-    #dst_engine_str = "postgresql+psycopg2://{}".format(sys.argv[1])
-    dst_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[1])
+    dst_engine_str = "postgresql+psycopg2://{}".format(sys.argv[1])
+    #dst_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[1])
     dst_engine = create_engine(dst_engine_str, pool_recycle=3600)
     dst_connection = sessionmaker(bind=dst_engine)
 
@@ -48,13 +49,13 @@ if __name__ == '__main__':
     # Clear new tables
     dst_session.query(new_tables.Session).delete()
     dst_session.query(new_tables.OldUser).delete()
-    dst_session.query(new_tables.User).delete()
     dst_session.query(new_tables.ForumPostEdit).delete()
     dst_session.query(new_tables.ForumLastRead).delete()
     dst_session.query(new_tables.ForumPost).delete()
     dst_session.query(new_tables.ForumThread).delete()
     dst_session.query(new_tables.ForumBoard).delete()
     dst_session.query(new_tables.ForumSection).delete()
+    dst_session.query(new_tables.User).delete()
 
     # Transfer users
     for old_user in old_tables.User.get_many(src_session):
@@ -68,6 +69,7 @@ if __name__ == '__main__':
         new_user.deleted = not old_user.active or not old_pw or old_user.spambot
         new_user.created_at = old_user.registered
         new_user.last_contact = old_user.lastcontact
+        print(old_user.registered.tzinfo)
         new_user.level = level_conv_table[old_user.level]
         dst_session.add(new_user)
         dst_session.flush()
@@ -82,6 +84,17 @@ if __name__ == '__main__':
         # Create mapping and print info
         user_mapping[old_user.id] = new_user.id
         print(u"[user   ] {} migrated".format(new_user.username))
+
+    # Transfer news items
+    for old_news in old_tables.NewsModel.get_many(src_session):
+        new_news = new_tables.NewsItem()
+        new_news.nickname = "Akvavitix"
+        new_news.header = old_news.header
+        new_news.message = old_news.message
+        new_news.created_at = old_news.time
+        dst_session.add(new_news)
+        dst_session.flush()
+        print(u"[news   ] {} migrated".format(new_news.id))
 
     # Transfer sections
     for old_section in old_tables.ForumSection.get_many(src_session):
@@ -131,17 +144,6 @@ if __name__ == '__main__':
         dst_session.add(new_post)
         dst_session.flush()
         print(u"[post   ] {} migrated".format(new_post.id))
-
-    # Transfer news items
-    for old_news in old_tables.NewsModel.get_many(src_session):
-        new_news = new_tables.NewsItem()
-        new_news.nickname = "Akvavitix"
-        new_news.header = old_news.header
-        new_news.message = old_news.message
-        new_news.created_at = old_news.time
-        dst_session.add(new_news)
-        dst_session.flush()
-        print(u"[news   ] {} migrated".format(new_news.id))
 
     # Commit all changes
     dst_session.commit()
