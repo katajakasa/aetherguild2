@@ -20,6 +20,11 @@ level_conv_table = {
     4: 2   # root to admin
 }
 
+
+def make_utc(dt):
+    return arrow.get(dt, 'Europe/Amsterdam').to('UTC').datetime
+
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print("Target database required as the first argument, source database as second!")
@@ -67,9 +72,8 @@ if __name__ == '__main__':
         new_user.username = old_user.username
         new_user.nickname = old_user.alias
         new_user.deleted = not old_user.active or not old_pw or old_user.spambot
-        new_user.created_at = old_user.registered
-        new_user.last_contact = old_user.lastcontact
-        print(old_user.registered.tzinfo)
+        new_user.created_at = make_utc(old_user.registered)
+        new_user.last_contact = make_utc(old_user.lastcontact)
         new_user.level = level_conv_table[old_user.level]
         dst_session.add(new_user)
         dst_session.flush()
@@ -91,7 +95,7 @@ if __name__ == '__main__':
         new_news.nickname = "Akvavitix"
         new_news.header = old_news.header
         new_news.message = old_news.message
-        new_news.created_at = old_news.time
+        new_news.created_at = make_utc(old_news.time)
         dst_session.add(new_news)
         dst_session.flush()
         print(u"[news   ] {} migrated".format(new_news.id))
@@ -125,7 +129,7 @@ if __name__ == '__main__':
         new_thread.board = board_mapping[old_thread.bid]
         new_thread.user = user_mapping[old_thread.uid]
         new_thread.title = old_thread.title
-        new_thread.created_at = old_thread.post_time
+        new_thread.created_at = make_utc(old_thread.post_time)
         new_thread.views = old_thread.views
         new_thread.sticky = old_thread.sticky
         new_thread.closed = old_thread.closed
@@ -134,12 +138,12 @@ if __name__ == '__main__':
         thread_mapping[old_thread.id] = new_thread.id
         print(u"[thread ] {} migrated".format(new_thread.title))
 
-    # Transfer users, edits
+    # Transfer posts, edits
     for old_post in old_tables.ForumPost.get_many(src_session):
         new_post = new_tables.ForumPost()
         new_post.user = user_mapping[old_post.uid]
         new_post.thread = thread_mapping[old_post.tid]
-        new_post.created_at = old_post.post_time
+        new_post.created_at = make_utc(old_post.post_time)
         new_post.message = old_post.message
         dst_session.add(new_post)
         dst_session.flush()

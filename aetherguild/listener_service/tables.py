@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
 import os
 import json
 
@@ -13,6 +12,10 @@ from aetherguild.common.utils import generate_random_key
 from aetherguild import config
 
 Base = declarative_base()
+
+
+def utc_now():
+    return arrow.utcnow().datetime
 
 
 class ModelHelperMixin(object):
@@ -53,8 +56,8 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     password = Column(String(256), nullable=True, default=None)
     nickname = Column(String(32), nullable=False)
     level = Column(Integer, default=1, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    last_contact = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    last_contact = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     profile_data = Column(Text, default=u'{}', nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
@@ -81,8 +84,8 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     user = Column(ForeignKey('user.id'), nullable=False)
     session_key = Column(String(32), unique=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    activity_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    activity_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     def serialize(self):
         return {
@@ -97,7 +100,7 @@ class File(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "file"
     id = Column(Integer, primary_key=True)
     key = Column(String(24), unique=True, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     def __init__(self, ext, *args, **kwargs):
         self.key = u"{}.{}".format(generate_random_key()[:16], ext)
@@ -135,7 +138,7 @@ class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     nickname = Column(String(32), nullable=False)
     header = Column(String(64), nullable=False)
     message = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
@@ -190,7 +193,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     board = Column(ForeignKey('forum_board.id'), nullable=False)
     user = Column(ForeignKey('user.id'), nullable=False)
     title = Column(String(64), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     views = Column(Integer, default=0, nullable=False)
     sticky = Column(Boolean, default=False, nullable=False)
     closed = Column(Boolean, default=False, nullable=False)
@@ -215,7 +218,7 @@ class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
     thread = Column(ForeignKey('forum_thread.id'), nullable=False)
     user = Column(ForeignKey('user.id'), nullable=False)
     message = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
@@ -234,7 +237,7 @@ class ForumPostEdit(Base, ModelHelperMixin, ModelFormatMixin):
     post = Column(ForeignKey('forum_post.id'), nullable=False)
     user = Column(ForeignKey('user.id'), nullable=False)
     message = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     def serialize(self):
         return {
@@ -251,7 +254,7 @@ class ForumLastRead(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     thread = Column(ForeignKey('forum_thread.id'), nullable=False)
     user = Column(ForeignKey('user.id'), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     UniqueConstraint('thread', 'user', name='unique_thread_user_constraint')
 
     def serialize(self):
