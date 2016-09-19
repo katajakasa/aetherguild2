@@ -52,6 +52,7 @@ if __name__ == '__main__':
     thread_mapping = {}
 
     # Clear new tables
+    dst_session.query(new_tables.NewsItem).delete()
     dst_session.query(new_tables.Session).delete()
     dst_session.query(new_tables.OldUser).delete()
     dst_session.query(new_tables.ForumPostEdit).delete()
