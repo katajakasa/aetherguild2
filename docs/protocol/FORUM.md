@@ -163,6 +163,14 @@ Response (server -> client), success:
     'receipt': <variable Receipt ID>, # Receipt ID, if one was supplied on request
     'error': false,
     'data': {
+        'users': [
+        {
+            'id': <int User ID>,
+            'nickname': <str User nickname>,
+        },
+        {
+            <...>
+        }],
         'board': {
             'description': <str Board description>,
             'title': <std Board title>,
@@ -175,12 +183,13 @@ Response (server -> client), success:
         'threads': [
         {
             'id': <int Thread ID>,
+            'user': <int User ID>,
+            'board': <int Board ID>,
             'title': <str Section title>,
             'created_at': <iso8601 Creation date>,
             'views': <int Number of views>,
             'sticky': <bool Is thread sticky>,
             'closed': <bool Is thread closed>,
-            'nickname': <str Post sender nickname>,
             'posts_count': <int Number of posts in the thread>,
             'latest_post_time': <iso8601 Latest sent post date>,
             'latest_check_time': <iso8601 Latest read by the user>,
