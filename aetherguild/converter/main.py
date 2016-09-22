@@ -126,6 +126,10 @@ if __name__ == '__main__':
 
     # Transfer threads
     for old_thread in old_tables.ForumThread.get_many(src_session):
+        latest_thread_post = src_session.query(old_tables.ForumPost)\
+            .filter_by(tid=old_thread.id)\
+            .order_by(old_tables.ForumPost.id.desc()).first()
+
         new_thread = new_tables.ForumThread()
         new_thread.board = board_mapping[old_thread.bid]
         new_thread.user = user_mapping[old_thread.uid]
@@ -134,6 +138,7 @@ if __name__ == '__main__':
         new_thread.views = old_thread.views
         new_thread.sticky = old_thread.sticky
         new_thread.closed = old_thread.closed
+        new_thread.updated_at = make_utc(latest_thread_post.post_time)
         dst_session.add(new_thread)
         dst_session.flush()
         thread_mapping[old_thread.id] = new_thread.id
