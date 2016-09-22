@@ -150,8 +150,8 @@ Request (client -> server):
     'receipt': <variable Receipt ID>,  # Optional
     'data': {
         'board': <int Board ID>,
-        'start': <int Index of first result entry>,  # Optional
-        'count': <int Number of result entries>  # Optional
+        'start': <int Index of first result entry>,  # Optional, defaults to 0
+        'count': <int Number of result entries>  # Optional, defaults to 10
     }
 }
 ```

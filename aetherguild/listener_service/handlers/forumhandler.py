@@ -98,8 +98,8 @@ class ForumHandler(BaseHandler):
 
     @validate_message_schema(get_threads_request)
     def get_threads(self, track_route, message):
-        start = message['data'].get('start', None)
-        count = message['data'].get('count', None)
+        start = message['data'].get('start', 0)
+        count = message['data'].get('count', 10)
         board_id = message['data']['board']
 
         # Check if user has rights to the board. Fake out 404 if not.
@@ -139,7 +139,7 @@ class ForumHandler(BaseHandler):
             'limit': count,
             'offset': start,
             'board_id': board_id,
-            'user_id': self.session.user.id
+            'user_id': self.session.user.id if self.session.user else 0
         }
         threads = self.db.execute(query, params)
 
@@ -161,7 +161,7 @@ class ForumHandler(BaseHandler):
                 'nickname': row[8],
                 'posts_count': row[9],
                 'latest_post_time': arrow.get(row[10]).isoformat(),
-                'latest_check_time': arrow.get(row[11]).isoformat() if row[11] else None
+                'latest_check_time': arrow.get(row[11]).isoformat() if (row[11] and self.session.user) else None
             })
 
         self.send_message({
@@ -201,12 +201,24 @@ class ForumHandler(BaseHandler):
     @validate_message_schema(update_thread_views_request)
     def update_thread_views(self, track_route, message):
         thread_id = message['data']['thread']
+
+        # Update forum read count
         try:
             thread = ForumThread.get_one(self.db, id=thread_id)
             thread.views += 1
             self.db.add(thread)
         except NoResultFound:
             pass
+
+        # If user is logged in, update last read timestamp
+        if self.session.user:
+            last_read = ForumLastRead.get_one_or_none(self.db, thread=thread_id, user=self.session.user.id)
+            if not last_read:
+                last_read = ForumLastRead()
+                last_read.user = self.session.user.id
+                last_read.thread = thread_id
+            last_read.created_at = arrow.utcnow().datetime
+            last_read.save()
 
     @validate_message_schema(get_posts_request)
     def get_posts(self, track_route, message):
