@@ -109,7 +109,7 @@ class ForumHandler(BaseHandler):
             return
 
         query = '   SELECT forum_thread.id,' \
-                '          forum_thread.user,' \
+                '          forum_thread.user AS uid, ' \
                 '          forum_thread.board,' \
                 '          forum_thread.title,' \
                 '          forum_thread.created_at, ' \
