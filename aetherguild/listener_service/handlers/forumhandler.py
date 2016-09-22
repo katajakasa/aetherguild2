@@ -119,7 +119,7 @@ class ForumHandler(BaseHandler):
                 '          user.nickname AS nickname, ' \
                 '          (SELECT COUNT(*) ' \
                 '             FROM forum_post ' \
-                '            WHERE thread = forum_thread.id) AS posts_count, ' \
+                '            WHERE thread = forum_thread.id AND forum_post.deleted = 0) AS posts_count, ' \
                 '          (SELECT forum_post.created_at ' \
                 '             FROM forum_post ' \
                 '            WHERE forum_post.thread = forum_thread.id ' \
@@ -130,7 +130,9 @@ class ForumHandler(BaseHandler):
                 '            WHERE forum_last_read.thread = forum_thread.id ' \
                 '              AND forum_last_read.user = :user_id) AS latest_check_time ' \
                 '     FROM forum_thread, user ' \
-                '    WHERE forum_thread.board = :board_id AND forum_thread.user = user.id ' \
+                '    WHERE forum_thread.board = :board_id' \
+                '          AND forum_thread.user = user.id ' \
+                '          AND forum_thread.deleted = 0' \
                 ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC '\
                 '    LIMIT :offset, :limit'
         params = {
