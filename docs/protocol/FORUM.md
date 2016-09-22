@@ -171,20 +171,7 @@ Response (server -> client), success:
             'req_level': <int Required user level>,
             'id': <int Board ID>
         },
-        'users': [ # Contains all users shown in the threads
-            <int User ID>: {
-                'id': <int User ID>,
-                'nickname': <str Nickname>,
-                'level': <int User level>,
-                'created_at': <iso8601 User creation date>,
-                'last_contact': <iso8601 Last contact with user>
-            }, 
-            <int User ID>: {
-                <...>
-            }
-        ],
         'threads_count': <int Total amount of threads>,
-        'posts_count': <int Total amount of posts>,
         'threads': [
         {
             'id': <int Thread ID>,
@@ -195,7 +182,10 @@ Response (server -> client), success:
             'views': <int Number of views>,
             'sticky': <bool Is thread sticky>,
             'closed': <bool Is thread closed>,
-            'last_read': <iso8601 Last read by the user>,
+            'nickname': <str Post sender nickname>,
+            'posts_count': <int Number of posts in the thread>,
+            'latest_post_time': <iso8601 Latest sent post date>,
+            'latest_check_time': <iso8601 Latest read by the user>,
         },
         {
             <...>
