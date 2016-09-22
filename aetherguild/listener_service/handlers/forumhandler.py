@@ -406,6 +406,10 @@ class ForumHandler(BaseHandler):
             self.send_error(450, errors_list)
             return
 
+        # Update thread updated_at
+        thread.updated_at = arrow.utcnow().datetime
+        thread.save()
+
         # Create a new post for the thread
         post = ForumPost()
         post.message = msg
