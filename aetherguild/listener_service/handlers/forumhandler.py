@@ -120,11 +120,6 @@ class ForumHandler(BaseHandler):
                 '          (SELECT COUNT(*) ' \
                 '             FROM forum_post ' \
                 '            WHERE thread = forum_thread.id AND forum_post.deleted = FALSE) AS posts_count, ' \
-                '          (SELECT forum_post.created_at ' \
-                '             FROM forum_post ' \
-                '            WHERE forum_post.thread = forum_thread.id ' \
-                '         ORDER BY forum_post.created_at ' \
-                '             DESC LIMIT 1) AS latest_post_time, ' \
                 '          (SELECT forum_last_read.created_at ' \
                 '             FROM forum_last_read ' \
                 '            WHERE forum_last_read.thread = forum_thread.id ' \
@@ -133,7 +128,7 @@ class ForumHandler(BaseHandler):
                 '    WHERE forum_thread.board = :board_id' \
                 '          AND forum_thread.user = new_user.id ' \
                 '          AND forum_thread.deleted = FALSE' \
-                ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC ' \
+                ' ORDER BY forum_thread.sticky DESC, forum_thread.updated_at DESC ' \
                 '    LIMIT :limit ' \
                 '   OFFSET :offset '
         params = {
