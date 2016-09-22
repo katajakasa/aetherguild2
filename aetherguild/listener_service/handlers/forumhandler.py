@@ -108,55 +108,64 @@ class ForumHandler(BaseHandler):
             self.send_error(404, "Board not Found")
             return
 
-        # Base query
-        posts_query = self.db.query(func.count('*').label('posts_count')).filter(and_(
-            ForumPost.thread == ForumThread.id,
-            ForumPost.deleted == False
-        )).as_scalar()
-        latest_post_query = self.db.query(func.max('id').label('max_post_date')).filter(and_(
-            ForumPost.thread == ForumThread.id,
-            ForumPost.deleted == False,
-        )).as_scalar()
-        base_query = self.db.query(ForumThread, posts_query, User, latest_post_query).filter(and_(
-            ForumThread.board == board_id,
-            ForumThread.deleted == False,
-            User.id == ForumThread.user
-        ))
+        query = '   SELECT forum_thread.id,' \
+                '          forum_thread.user,' \
+                '          forum_thread.board,' \
+                '          forum_thread.title,' \
+                '          forum_thread.created_at, ' \
+                '          forum_thread.views,' \
+                '          forum_thread.sticky,' \
+                '          forum_thread.closed, ' \
+                '          user.nickname AS nickname, ' \
+                '          (SELECT COUNT(*) ' \
+                '             FROM forum_post ' \
+                '            WHERE thread = forum_thread.id) AS posts_count, ' \
+                '          (SELECT forum_post.created_at ' \
+                '             FROM forum_post ' \
+                '            WHERE forum_post.thread = forum_thread.id ' \
+                '         ORDER BY forum_post.created_at ' \
+                '             DESC LIMIT 1) AS latest_post_time, ' \
+                '          (SELECT forum_last_read.created_at ' \
+                '             FROM forum_last_read ' \
+                '            WHERE forum_last_read.thread = forum_thread.id ' \
+                '              AND forum_last_read.user = :user_id) AS latest_check_time ' \
+                '     FROM forum_thread, user ' \
+                '    WHERE forum_thread.board = :board_id AND forum_thread.user = user.id ' \
+                ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC '\
+                '    LIMIT :offset, :limit'
+        params = {
+            'limit': count,
+            'offset': start,
+            'board_id': board_id,
+            'user_id': self.session.user.id
+        }
+        threads = self.db.execute(query, params)
 
-        # Get threads + thread count, apply limit and offset if required in args
-        threads_count = base_query.count()
-        threads = base_query.order_by(ForumThread.sticky.desc(), latest_post_query.desc())
-        if start:
-            threads = threads.offset(start)
-        if count:
-            threads = threads.limit(count)
+        # Get thread count for this board
+        threads_count = self.db.query(ForumThread).filter_by(deleted=False, board=board_id).count()
 
+        # Walk through the threads
         thread_list = []
-        user_list = {}
-        for thread, posts_count, user, last_post_date in threads:
-            # Serialize thread contents
-            data = thread.serialize()
-
-            # Insert post count
-            data['posts_count'] = posts_count
-
-            # Add user to the users list if not yet there
-            if user.id not in user_list:
-                user_list[user.id] = user.serialize()
-
-            # Fetch last_read information for this user and thread
-            data['last_read'] = None
-            if self.session.user:
-                last_read = ForumLastRead.get_one_or_none(self.db, thread=thread.id, user=self.session.user.id)
-                if last_read:
-                    data['last_read'] = arrow.get(last_read.created_at).isoformat()
-            thread_list.append(data)
+        for row in threads:
+            thread_list.append({
+                'id': row[0],
+                'user': row[1],
+                'board': row[2],
+                'title': row[3],
+                'created_at': arrow.get(row[4]).isoformat(),
+                'views': row[5],
+                'sticky': row[6],
+                'closed': row[7],
+                'nickname': row[8],
+                'posts_count': row[9],
+                'latest_post_time': arrow.get(row[10]).isoformat(),
+                'latest_check_time': arrow.get(row[11]).isoformat() if row[11] else None
+            })
 
         self.send_message({
             'board': board.serialize(),
             'threads_count': threads_count,
             'threads': thread_list,
-            'users': user_list
         })
 
     def get_combined_boards(self, track_route, message):

@@ -218,7 +218,7 @@ class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
     thread = Column(ForeignKey('forum_thread.id'), nullable=False)
     user = Column(ForeignKey('user.id'), nullable=False)
     message = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
     deleted = Column(Boolean, default=False, nullable=False)
 
     def serialize(self):
