@@ -42,14 +42,14 @@ class ModelFormatMixin(object):
 
 
 class OldUser(Base, ModelHelperMixin, ModelFormatMixin):
-    __tablename__ = "olduser"
+    __tablename__ = "old_user"
     id = Column(Integer, primary_key=True)
-    user = Column(ForeignKey('user.id'), nullable=False)
+    user = Column(ForeignKey('new_user.id'), nullable=False)
     password = Column(Binary(32), nullable=False)
 
 
 class User(Base, ModelHelperMixin, ModelFormatMixin):
-    __tablename__ = "user"
+    __tablename__ = "new_user"
     id = Column(Integer, primary_key=True)
     avatar = Column(ForeignKey('file.key'), default=None, nullable=True)
     username = Column(String(32), unique=True, nullable=False)
@@ -82,7 +82,7 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
 class Session(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "session"
     id = Column(Integer, primary_key=True)
-    user = Column(ForeignKey('user.id'), nullable=False)
+    user = Column(ForeignKey('new_user.id'), nullable=False)
     session_key = Column(String(32), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     activity_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -191,7 +191,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_thread"
     id = Column(Integer, primary_key=True)
     board = Column(ForeignKey('forum_board.id'), nullable=False)
-    user = Column(ForeignKey('user.id'), nullable=False)
+    user = Column(ForeignKey('new_user.id'), nullable=False)
     title = Column(String(64), nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     views = Column(Integer, default=0, nullable=False)
@@ -216,7 +216,7 @@ class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_post"
     id = Column(Integer, primary_key=True)
     thread = Column(ForeignKey('forum_thread.id'), nullable=False)
-    user = Column(ForeignKey('user.id'), nullable=False)
+    user = Column(ForeignKey('new_user.id'), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
     deleted = Column(Boolean, default=False, nullable=False)
@@ -235,7 +235,7 @@ class ForumPostEdit(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_edit"
     id = Column(Integer, primary_key=True)
     post = Column(ForeignKey('forum_post.id'), nullable=False)
-    user = Column(ForeignKey('user.id'), nullable=False)
+    user = Column(ForeignKey('new_user.id'), nullable=False)
     message = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
@@ -253,7 +253,7 @@ class ForumLastRead(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_last_read"
     id = Column(Integer, primary_key=True)
     thread = Column(ForeignKey('forum_thread.id'), nullable=False)
-    user = Column(ForeignKey('user.id'), nullable=False)
+    user = Column(ForeignKey('new_user.id'), nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     UniqueConstraint('thread', 'user', name='unique_thread_user_constraint')
 

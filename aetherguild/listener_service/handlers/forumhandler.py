@@ -114,7 +114,7 @@ class ForumHandler(BaseHandler):
                 '          forum_thread.views,' \
                 '          forum_thread.sticky,' \
                 '          forum_thread.closed, ' \
-                '          forum_user.nickname AS nickname, ' \
+                '          new_user.nickname, ' \
                 '          (SELECT COUNT(*) ' \
                 '             FROM forum_post ' \
                 '            WHERE thread = forum_thread.id AND forum_post.deleted = 0) AS posts_count, ' \
@@ -127,9 +127,9 @@ class ForumHandler(BaseHandler):
                 '             FROM forum_last_read ' \
                 '            WHERE forum_last_read.thread = forum_thread.id ' \
                 '              AND forum_last_read.user = :user_id) AS latest_check_time ' \
-                '     FROM forum_thread, user AS forum_user ' \
+                '     FROM forum_thread, new_user ' \
                 '    WHERE forum_thread.board = :board_id' \
-                '          AND forum_thread.user = forum_user.id ' \
+                '          AND forum_thread.user = new_user.id ' \
                 '          AND forum_thread.deleted = 0' \
                 ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC ' \
                 '    LIMIT :limit ' \
