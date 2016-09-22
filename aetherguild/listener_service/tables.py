@@ -195,7 +195,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     title = Column(String(64), nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     views = Column(Integer, default=0, nullable=False)
-    sticky = Column(Boolean, default=False, nullable=False)
+    sticky = Column(Boolean, default=False, nullable=False, index=True)
     closed = Column(Boolean, default=False, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
