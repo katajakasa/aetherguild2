@@ -117,7 +117,7 @@ class ForumHandler(BaseHandler):
                 '          new_user.nickname, ' \
                 '          (SELECT COUNT(*) ' \
                 '             FROM forum_post ' \
-                '            WHERE thread = forum_thread.id AND forum_post.deleted = 0) AS posts_count, ' \
+                '            WHERE thread = forum_thread.id AND forum_post.deleted = FALSE) AS posts_count, ' \
                 '          (SELECT forum_post.created_at ' \
                 '             FROM forum_post ' \
                 '            WHERE forum_post.thread = forum_thread.id ' \
@@ -130,7 +130,7 @@ class ForumHandler(BaseHandler):
                 '     FROM forum_thread, new_user ' \
                 '    WHERE forum_thread.board = :board_id' \
                 '          AND forum_thread.user = new_user.id ' \
-                '          AND forum_thread.deleted = 0' \
+                '          AND forum_thread.deleted = FALSE' \
                 ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC ' \
                 '    LIMIT :limit ' \
                 '   OFFSET :offset '
