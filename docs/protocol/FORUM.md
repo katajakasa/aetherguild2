@@ -175,8 +175,6 @@ Response (server -> client), success:
         'threads': [
         {
             'id': <int Thread ID>,
-            'board': <int Board ID>,
-            'user': <int User ID for the owner (creator) of the thread>,
             'title': <str Section title>,
             'created_at': <iso8601 Creation date>,
             'views': <int Number of views>,

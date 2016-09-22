@@ -109,8 +109,6 @@ class ForumHandler(BaseHandler):
             return
 
         query = '   SELECT forum_thread.id,' \
-                '          forum_thread.user, ' \
-                '          forum_thread.board,' \
                 '          forum_thread.title,' \
                 '          forum_thread.created_at, ' \
                 '          forum_thread.views,' \
@@ -152,17 +150,15 @@ class ForumHandler(BaseHandler):
         for row in threads:
             thread_list.append({
                 'id': row[0],
-                'user': row[1],
-                'board': row[2],
-                'title': row[3],
-                'created_at': arrow.get(row[4]).isoformat(),
-                'views': row[5],
-                'sticky': row[6],
-                'closed': row[7],
-                'nickname': row[8],
-                'posts_count': row[9],
-                'latest_post_time': arrow.get(row[10]).isoformat(),
-                'latest_check_time': arrow.get(row[11]).isoformat() if (row[11] and self.session.user) else None
+                'title': row[1],
+                'created_at': arrow.get(row[2]).isoformat(),
+                'views': row[3],
+                'sticky': row[4],
+                'closed': row[5],
+                'nickname': row[6],
+                'posts_count': row[7],
+                'latest_post_time': arrow.get(row[8]).isoformat(),
+                'latest_check_time': arrow.get(row[9]).isoformat() if (row[9] and self.session.user) else None
             })
 
         self.send_message({
