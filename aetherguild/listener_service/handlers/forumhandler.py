@@ -133,8 +133,9 @@ class ForumHandler(BaseHandler):
                 '    WHERE forum_thread.board = :board_id' \
                 '          AND forum_thread.user = forum_user.id ' \
                 '          AND forum_thread.deleted = 0' \
-                ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC '\
-                '    LIMIT :offset, :limit'
+                ' ORDER BY forum_thread.sticky DESC, latest_post_time DESC ' \
+                '    LIMIT :limit ' \
+                '   OFFSET :offset '
         params = {
             'limit': count,
             'offset': start,
