@@ -5,7 +5,7 @@ import json
 
 import bleach
 import arrow
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint, Binary
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint, Binary, Index
 from sqlalchemy.ext.declarative import declarative_base
 
 from aetherguild.common.utils import generate_random_key
@@ -199,6 +199,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     sticky = Column(Boolean, default=False, nullable=False, index=True)
     closed = Column(Boolean, default=False, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
+    Index("desc_sort_index", 'sticky', 'updated_at')
 
     def serialize(self):
         return {

@@ -31,8 +31,8 @@ if __name__ == '__main__':
         exit(1)
 
     # Connect to destination database
-    dst_engine_str = "postgresql+psycopg2://{}".format(sys.argv[1])
-    #dst_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[1])
+    #dst_engine_str = "postgresql+psycopg2://{}".format(sys.argv[1])
+    dst_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[1])
     dst_engine = create_engine(dst_engine_str, pool_recycle=3600)
     dst_connection = sessionmaker(bind=dst_engine)
 
