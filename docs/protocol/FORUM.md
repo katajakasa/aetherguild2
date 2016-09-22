@@ -187,11 +187,11 @@ Response (server -> client), success:
             'board': <int Board ID>,
             'title': <str Section title>,
             'created_at': <iso8601 Creation date>,
+            'updated_at': <iso8601 Latest message sent>,
             'views': <int Number of views>,
             'sticky': <bool Is thread sticky>,
             'closed': <bool Is thread closed>,
             'posts_count': <int Number of posts in the thread>,
-            'latest_post_time': <iso8601 Latest sent post date>,
             'latest_check_time': <iso8601 Latest read by the user>,
         },
         {

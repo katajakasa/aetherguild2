@@ -4,7 +4,7 @@ import logging
 
 import arrow
 import bleach
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, text
 from sqlalchemy.orm.exc import NoResultFound
 
 from basehandler import BaseHandler, is_authenticated, has_level, validate_message_schema, ErrorList
@@ -113,6 +113,7 @@ class ForumHandler(BaseHandler):
                 '          forum_thread.board, ' \
                 '          forum_thread.title,' \
                 '          forum_thread.created_at, ' \
+                '          forum_thread.updated_at, ' \
                 '          forum_thread.views, ' \
                 '          forum_thread.sticky, ' \
                 '          forum_thread.closed, ' \
@@ -152,17 +153,17 @@ class ForumHandler(BaseHandler):
                 'board': row[2],
                 'title': row[3],
                 'created_at': arrow.get(row[4]).isoformat(),
-                'views': row[5],
-                'sticky': row[6],
-                'closed': row[7],
-                'posts_count': row[9],
-                'latest_post_time': arrow.get(row[10]).isoformat(),
+                'updated_at': arrow.get(row[5]).isoformat(),
+                'views': row[6],
+                'sticky': row[7],
+                'closed': row[8],
+                'posts_count': row[10],
                 'latest_check_time': arrow.get(row[11]).isoformat() if (row[11] and self.session.user) else None
             })
             if row[1] not in users_list:
                 users_list[row[1]] = {
                     'id': row[1],
-                    'nickname': row[8],
+                    'nickname': row[9],
                 }
 
         self.send_message({
@@ -220,7 +221,7 @@ class ForumHandler(BaseHandler):
                 last_read.user = self.session.user.id
                 last_read.thread = thread_id
             last_read.created_at = arrow.utcnow().datetime
-            last_read.save()
+            self.db.add(last_read)
 
     @validate_message_schema(get_posts_request)
     def get_posts(self, track_route, message):
@@ -402,8 +403,8 @@ class ForumHandler(BaseHandler):
             return
 
         # Update thread updated_at
-        thread.updated_at = arrow.utcnow().datetime
-        thread.save()
+        thread.updated_at = text('now()')
+        self.db.add(thread)
 
         # Create a new post for the thread
         post = ForumPost()
