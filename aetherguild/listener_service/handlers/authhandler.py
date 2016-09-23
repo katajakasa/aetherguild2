@@ -92,7 +92,7 @@ class AuthHandler(BaseHandler):
             # Send authentication successful packet to the web client
             self.send_message({
                 'session_key': key,
-                'user': user.serialize(include_profile=True)
+                'user': user.serialize(include_profile=True, include_username=True)
             })
 
             # Broadcast to other users that this one has logged in
@@ -329,7 +329,7 @@ class AuthHandler(BaseHandler):
             # Send authentication successful packet to the web client
             self.send_message({
                 'session_key': key,
-                'user': user_session.user.serialize(include_profile=True)
+                'user': user_session.user.serialize(include_profile=True, include_username=True)
             })
 
             # Broadcast to other users that this one has logged in
