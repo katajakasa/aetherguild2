@@ -14,10 +14,12 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from aetherguild.listener_service.tables import User, Session, File, OldUser
 from aetherguild.listener_service.user_session import UserSession, LEVEL_USER, LEVEL_GUEST
-from basehandler import BaseHandler, ErrorList, is_authenticated, validate_message_schema
+from aetherguild.listener_service.handlers.basehandler import BaseHandler, ErrorList, is_authenticated,\
+    validate_message_schema
 from aetherguild.listener_service.schemas.auth import *
 from aetherguild.common.utils import generate_random_key
-from utils import validate_str_length, validate_required_field, validate_password_field
+from aetherguild.listener_service.handlers.utils import validate_str_length, validate_required_field,\
+    validate_password_field
 from aetherguild import config
 
 log = logging.getLogger(__name__)

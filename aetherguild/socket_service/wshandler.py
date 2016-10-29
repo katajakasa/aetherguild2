@@ -5,7 +5,7 @@ import logging
 import uuid
 import json
 from tornado.websocket import WebSocketHandler
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 log = logging.getLogger(__name__)
 

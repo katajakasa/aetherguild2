@@ -7,9 +7,9 @@ import bleach
 
 from aetherguild.listener_service.tables import NewsItem
 from aetherguild.listener_service.user_session import LEVEL_ADMIN
-from basehandler import BaseHandler, validate_message_schema, has_level, ErrorList
+from .basehandler import BaseHandler, validate_message_schema, has_level, ErrorList
 from aetherguild.listener_service.schemas.news import *
-from utils import validate_str_length
+from .utils import validate_str_length
 
 log = logging.getLogger(__name__)
 

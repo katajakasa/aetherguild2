@@ -1,6 +1,6 @@
 # aetherguild2
 
-Website project for https://aetherguild.net
+Website project for https://aetherguild.net -- python3 required!
 
 ## 1. Installation
 

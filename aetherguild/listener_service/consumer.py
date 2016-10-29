@@ -7,7 +7,7 @@ import time
 from pika.exceptions import ConnectionClosed as MQConnectionClosed
 from sqlalchemy.exc import DisconnectionError as DBConnectionClosed
 
-from router import MessageRouter
+from aetherguild.listener_service.router import MessageRouter
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class Consumer(object):
                 method_frame, _, body = packet
                 log.info(u"MQ: Consumed packet, delivery_tag = %s", method_frame.delivery_tag)
                 try:
-                    data = json.loads(body)
+                    data = json.loads(body.decode('utf8'))
                     self.router.handle(data['head'], data['body'])
                     self.mq_connection.ack(method_frame.delivery_tag)
                     log.info(u"MQ: ACK delivery_tag = %s", method_frame.delivery_tag)

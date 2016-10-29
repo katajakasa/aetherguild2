@@ -5,9 +5,9 @@ import signal
 from logging.config import dictConfig
 
 from aetherguild import config
-from consumer import Consumer
-from mq_connection import MQConnection
-from db_connection import DBConnection
+from aetherguild.listener_service.consumer import Consumer
+from aetherguild.listener_service.mq_connection import MQConnection
+from aetherguild.listener_service.db_connection import DBConnection
 
 
 if __name__ == '__main__':

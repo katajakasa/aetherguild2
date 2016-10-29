@@ -7,11 +7,12 @@ import bleach
 from sqlalchemy import func, and_, text
 from sqlalchemy.orm.exc import NoResultFound
 
-from basehandler import BaseHandler, is_authenticated, has_level, validate_message_schema, ErrorList
+from aetherguild.listener_service.handlers.basehandler import BaseHandler, is_authenticated, has_level,\
+    validate_message_schema, ErrorList
 from aetherguild.listener_service.schemas.forum import *
 from aetherguild.listener_service.tables import ForumBoard, ForumSection, ForumPost, ForumThread,\
     ForumLastRead, ForumPostEdit, User
-from utils import validate_str_length, validate_required_field
+from aetherguild.listener_service.handlers.utils import validate_str_length, validate_required_field
 from aetherguild.listener_service.user_session import LEVEL_ADMIN
 
 log = logging.getLogger(__name__)

@@ -4,13 +4,13 @@ import logging
 from copy import copy
 from cerberus import Validator
 
-from handlers.authhandler import AuthHandler
-from handlers.forumhandler import ForumHandler
-from handlers.adminhandler import AdminHandler
-from handlers.newshandler import NewsHandler
-from user_session import UserSession
-from mq_session import MQSession
-from schemas.base import base_request
+from aetherguild.listener_service.handlers.authhandler import AuthHandler
+from aetherguild.listener_service.handlers.forumhandler import ForumHandler
+from aetherguild.listener_service.handlers.adminhandler import AdminHandler
+from aetherguild.listener_service.handlers.newshandler import NewsHandler
+from aetherguild.listener_service.user_session import UserSession
+from aetherguild.listener_service.mq_session import MQSession
+from aetherguild.listener_service.schemas.base import base_request
 
 log = logging.getLogger(__name__)
 

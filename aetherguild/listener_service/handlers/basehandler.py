@@ -123,10 +123,10 @@ class BaseHandler(object):
         :param error_msg: Error messages list. Str, Unicode, ErrorList objects are valid.
         """
         assert type(error_code) == int, "Error code must be integer"
-        assert type(error_msgs) in (unicode, str, ErrorList), "Error messages must be unicode, str or ErrorList object"
+        assert type(error_msgs) in (str, ErrorList), "Error messages must be str or ErrorList object"
 
         error_list = error_msgs
-        if type(error_list) == str or type(error_list) == unicode:
+        if type(error_list) == str:
             error_list = ErrorList(error_list)
 
         self.send({

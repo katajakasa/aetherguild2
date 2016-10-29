@@ -7,8 +7,8 @@ from logging.config import dictConfig
 from tornado import web, ioloop
 
 from aetherguild import config
-from wshandler import WsHandler
-from mq import MQConnection
+from aetherguild.socket_service.wshandler import WsHandler
+from aetherguild.socket_service.mq import MQConnection
 
 
 if __name__ == '__main__':

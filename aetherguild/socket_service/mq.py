@@ -104,7 +104,7 @@ class MQConnection(object):
     def on_message(self, unused_channel, basic_deliver, properties, body):
         log.info(u"MQ: Queue %s => %s", config.MQ_FROM_LISTENER, body)
         try:
-            data = json.loads(body)
+            data = json.loads(body.decode('utf8'))
         except ValueError:
             self.channel.basic_nack(basic_deliver.delivery_tag, requeue=False)
             log.warning(u"MQ: NACK %s", basic_deliver.delivery_tag)
