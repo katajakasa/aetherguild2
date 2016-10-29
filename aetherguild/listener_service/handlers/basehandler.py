@@ -120,7 +120,7 @@ class BaseHandler(object):
     def send_error(self, error_code, error_msgs):
         """ Helper for sending standard error packet to the web client
         :param error_code: Error code
-        :param error_msg: Error messages list. Str, Unicode, ErrorList objects are valid.
+        :param error_msg: Error messages list. Str, ErrorList objects are valid.
         """
         assert type(error_code) == int, "Error code must be integer"
         assert type(error_msgs) in (str, ErrorList), "Error messages must be str or ErrorList object"
