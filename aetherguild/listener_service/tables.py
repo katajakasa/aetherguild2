@@ -5,7 +5,7 @@ import json
 
 import bleach
 import arrow
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint, Binary, Index
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, UniqueConstraint, Binary, Index, Unicode
 from sqlalchemy.ext.declarative import declarative_base
 
 from aetherguild.common.utils import generate_random_key
@@ -52,9 +52,9 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "new_user"
     id = Column(Integer, primary_key=True)
     avatar = Column(ForeignKey('file.key'), default=None, nullable=True)
-    username = Column(String(32), unique=True, nullable=False)
+    username = Column(String(64), unique=True, nullable=False)
     password = Column(String(256), nullable=True, default=None)
-    nickname = Column(String(32), nullable=False)
+    nickname = Column(String(64), nullable=False)
     level = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     last_contact = Column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -83,7 +83,7 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "session"
     id = Column(Integer, primary_key=True)
     user = Column(ForeignKey('new_user.id'), nullable=False)
-    session_key = Column(String(32), unique=True, nullable=False)
+    session_key = Column(String(64), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     activity_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
@@ -99,7 +99,7 @@ class Session(Base, ModelHelperMixin, ModelFormatMixin):
 class File(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "file"
     id = Column(Integer, primary_key=True)
-    key = Column(String(24), unique=True, nullable=False)
+    key = Column(String(32), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     def __init__(self, ext, *args, **kwargs):
@@ -135,8 +135,8 @@ class File(Base, ModelHelperMixin, ModelFormatMixin):
 class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "news_item"
     id = Column(Integer, primary_key=True)
-    nickname = Column(String(32), nullable=False)
-    header = Column(String(64), nullable=False)
+    nickname = Column(String(64), nullable=False)
+    header = Column(String(128), nullable=False)
     message = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
@@ -154,7 +154,7 @@ class NewsItem(Base, ModelHelperMixin, ModelFormatMixin):
 class ForumSection(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_section"
     id = Column(Integer, primary_key=True)
-    title = Column(String(64), nullable=False)
+    title = Column(String(128), nullable=False)
     sort_index = Column(Integer, default=0, nullable=False)
     deleted = Column(Boolean, default=False, nullable=False)
 
@@ -170,7 +170,7 @@ class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
     __tablename__ = "forum_board"
     id = Column(Integer, primary_key=True)
     section = Column(ForeignKey('forum_section.id'), nullable=False)
-    title = Column(String(64), nullable=False)
+    title = Column(String(128), nullable=False)
     description = Column(Text, nullable=False)
     req_level = Column(Integer, default=0, nullable=False)
     sort_index = Column(Integer, default=0, nullable=False)
@@ -192,7 +192,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     id = Column(Integer, primary_key=True)
     board = Column(ForeignKey('forum_board.id'), nullable=False)
     user = Column(ForeignKey('new_user.id'), nullable=False)
-    title = Column(String(64), nullable=False)
+    title = Column(String(128), nullable=False)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utc_now, nullable=False, index=True)
     views = Column(Integer, default=0, nullable=False)
