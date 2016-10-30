@@ -30,7 +30,7 @@ class AuthHandler(BaseHandler):
     def login(self, track_route, message):
         username = message['data']['username']
         password = message['data']['password']
-        key = generate_random_key()
+        key = generate_random_key().decode()
 
         # Find the user by username, fail with error if not found
         try:
