@@ -4,7 +4,7 @@ pika==0.10.0
 passlib==1.7.0
 arrow==0.10.0
 alembic==0.8.9
-pymysql==0.7.9
+psycopg2==2.6.2
 tabulate==0.7.7
 loremipsum==1.0.5
 bleach==1.5.0

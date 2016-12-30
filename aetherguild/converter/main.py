@@ -11,6 +11,7 @@ from aetherguild.listener_service import tables as new_tables
 
 import binascii
 
+from aetherguild.config import DATABASE_CONFIG
 
 level_conv_table = {
     0: 0,  # guest to guest
@@ -26,18 +27,16 @@ def make_utc(dt):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Target database required as the first argument, source database as second!")
+    if len(sys.argv) != 2:
+        print("Source database required as the first argument!")
         exit(1)
 
     # Connect to destination database
-    #dst_engine_str = "postgresql+psycopg2://{}".format(sys.argv[1])
-    dst_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[1])
-    dst_engine = create_engine(dst_engine_str, pool_recycle=3600)
+    dst_engine = create_engine(DATABASE_CONFIG, pool_recycle=3600)
     dst_connection = sessionmaker(bind=dst_engine)
 
     # Connect to source database
-    src_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[2])
+    src_engine_str = "mysql+pymysql://{}?charset=utf8mb4".format(sys.argv[1])
     src_engine = create_engine(src_engine_str, pool_recycle=3600)
     src_connection = sessionmaker(bind=src_engine)
 
