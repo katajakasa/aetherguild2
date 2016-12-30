@@ -61,11 +61,12 @@ class AuthHandler(BaseHandler):
 
         # If we have OldUser, try logging with that first
         if old_user:
-            old_hash = hashlib.sha256()
-            old_hash.update(password)
-            old_hash.update(config.OLD_FORUM_SALT)
-            new_hash = binascii.hexlify(old_user.password)
-            if old_hash.hexdigest() == new_hash:
+            test_hash = hashlib.sha256()
+            test_hash.update(password.encode('utf-8'))
+            test_hash.update(config.OLD_FORUM_SALT.encode('utf-8'))
+            test_hash_hex = test_hash.hexdigest().encode('utf-8')
+            old_hash = binascii.hexlify(old_user.password)
+            if test_hash_hex == old_hash:
                 # Save password to new user, delete OldUser
                 user.password = pbkdf2_sha512.encrypt(password)
                 OldUser.delete(self.db, id=old_user.id)
@@ -285,7 +286,7 @@ class AuthHandler(BaseHandler):
             self.db.add(self.session.user)
 
             # Save file to final destination
-            out_format = 'PNG' if img.format == 'PNG' else 'JPEG'
+            out_format = 'PNG' if img.format in ['PNG', 'GIF'] else 'JPEG'
             try:
                 img.save(db_file.get_local_path(), out_format)
             except IOError as ex:
