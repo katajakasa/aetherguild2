@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import json
+import ujson
 import time
 
 from pika.exceptions import ConnectionClosed as MQConnectionClosed
@@ -32,7 +32,7 @@ class Consumer(object):
                 method_frame, _, body = packet
                 log.info(u"MQ: Consumed packet, delivery_tag = %s", method_frame.delivery_tag)
                 try:
-                    data = json.loads(body.decode('utf8'))
+                    data = ujson.loads(body.decode('utf8'))
                     self.router.handle(data['head'], data['body'])
                     self.mq_connection.ack(method_frame.delivery_tag)
                     log.info(u"MQ: ACK delivery_tag = %s", method_frame.delivery_tag)

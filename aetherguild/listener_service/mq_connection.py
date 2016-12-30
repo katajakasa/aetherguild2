@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import json
+import ujson
 
 from pika import BlockingConnection, URLParameters
 from pika.spec import BasicProperties
@@ -30,7 +30,7 @@ class MQConnection(object):
         self.channel.basic_publish(
             exchange=config.MQ_EXCHANGE,
             routing_key=config.MQ_FROM_LISTENER,
-            body=json.dumps(message),
+            body=ujson.dumps(message, ensure_ascii=False),
             properties=BasicProperties(
                 content_type="application/json",
                 delivery_mode=2))

@@ -2,7 +2,7 @@
 
 import logging
 import pika
-import json
+import ujson
 from aetherguild import config
 
 log = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ class MQConnection(object):
     def on_message(self, unused_channel, basic_deliver, properties, body):
         log.info(u"MQ: Queue %s => %s", config.MQ_FROM_LISTENER, body)
         try:
-            data = json.loads(body.decode('utf8'))
+            data = ujson.loads(body.decode('utf8'))
         except ValueError:
             self.channel.basic_nack(basic_deliver.delivery_tag, requeue=False)
             log.warning(u"MQ: NACK %s", basic_deliver.delivery_tag)
@@ -128,7 +128,7 @@ class MQConnection(object):
         self.channel.basic_publish(
             exchange=config.MQ_EXCHANGE,
             routing_key=config.MQ_TO_LISTENER,
-            body=json.dumps(data),
+            body=ujson.dumps(data, ensure_ascii=False),
             properties=pika.spec.BasicProperties(
                 content_type="application/json",
                 delivery_mode=2))

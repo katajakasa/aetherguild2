@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import json
+import ujson
 
 import bleach
 import arrow
@@ -66,7 +66,7 @@ class User(Base, ModelHelperMixin):
             'last_contact': arrow.get(self.last_contact).isoformat()
         }
         if include_profile:
-            out['profile_data'] = json.loads(self.profile_data)
+            out['profile_data'] = ujson.loads(self.profile_data)
         if include_username:
             out['username'] = bleach.clean(self.username)
         if include_deleted:

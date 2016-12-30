@@ -2,7 +2,7 @@
 
 import logging
 import tempfile
-import json
+import ujson
 import binascii
 import hashlib
 
@@ -112,7 +112,7 @@ class AuthHandler(BaseHandler):
         username = message['data']['username']
         password = message['data']['password']
         nickname = bleach.clean(message['data']['nickname'])
-        profile_data = json.dumps(message['data']['profile_data'])
+        profile_data = ujson.dumps(message['data']['profile_data'], ensure_ascii=False)
         errors_list = ErrorList()
 
         validate_str_length('username', username, errors_list, 4, 32)
@@ -161,7 +161,7 @@ class AuthHandler(BaseHandler):
         new_password = message['data'].get('new_password')
         old_password = message['data'].get('old_password')
         nickname = message['data']['nickname']
-        profile_data = json.dumps(message['data']['profile_data'])
+        profile_data = ujson.dumps(message['data']['profile_data'], ensure_ascii=False)
         errors_list = ErrorList()
 
         # If user wants to change password, handle the checks

@@ -3,7 +3,7 @@
 from aetherguild import config
 import logging
 import uuid
-import json
+import ujson
 from tornado.websocket import WebSocketHandler
 from urllib.parse import urlparse
 
@@ -45,7 +45,7 @@ class WsHandler(WebSocketHandler):
     def on_message(self, message):
         """ Handler for messages coming from websocket """
         try:
-            decoded_data = json.loads(message)
+            decoded_data = ujson.loads(message)
         except ValueError:
             self.close()
             return

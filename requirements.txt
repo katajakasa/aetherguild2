@@ -12,3 +12,4 @@ cerberus==1.0.1
 raven==5.32.0
 pillow>=3.4.2
 requests>=2.12.4
+ujson==1.35

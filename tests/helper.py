@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
-import json
 import loremipsum
 import random
 from sqlalchemy.orm import sessionmaker
