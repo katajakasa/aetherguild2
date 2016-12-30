@@ -3,13 +3,13 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Text, Boolean, Binary
 from sqlalchemy.ext.declarative import declarative_base
 
-from aetherguild.listener_service.tables import ModelFormatMixin, ModelHelperMixin
+from aetherguild.listener_service.tables import ModelHelperMixin
 
 
 Base = declarative_base()
 
 
-class User(Base, ModelHelperMixin, ModelFormatMixin):
+class User(Base, ModelHelperMixin):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     username = Column(String(32))
@@ -23,21 +23,21 @@ class User(Base, ModelHelperMixin, ModelFormatMixin):
     spambot = Column(Boolean)
 
 
-class OldUser(Base, ModelHelperMixin, ModelFormatMixin):
+class OldUser(Base, ModelHelperMixin):
     __tablename__ = "old_users"
     uid = Column(Integer, primary_key=True)
     password = Column(String(40))
     salt = Column(String(12))
 
 
-class ForumSection(Base, ModelHelperMixin, ModelFormatMixin):
+class ForumSection(Base, ModelHelperMixin):
     __tablename__ = "forum_sections"
     id = Column(Integer, primary_key=True)
     title = Column(String(64))
     sort_index = Column(Integer)
 
 
-class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
+class ForumBoard(Base, ModelHelperMixin):
     __tablename__ = "forum_boards"
     id = Column(Integer, primary_key=True)
     sid = Column(ForeignKey('forum_sections.id'))
@@ -48,7 +48,7 @@ class ForumBoard(Base, ModelHelperMixin, ModelFormatMixin):
     sort_index = Column(Integer)
 
 
-class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
+class ForumThread(Base, ModelHelperMixin):
     __tablename__ = "forum_threads"
     id = Column(Integer, primary_key=True)
     bid = Column(ForeignKey('forum_boards.id'))
@@ -60,7 +60,7 @@ class ForumThread(Base, ModelHelperMixin, ModelFormatMixin):
     closed = Column(Boolean)
 
 
-class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
+class ForumPost(Base, ModelHelperMixin):
     __tablename__ = "forum_posts"
     id = Column(Integer, primary_key=True)
     tid = Column(ForeignKey('forum_threads.id'))
@@ -70,7 +70,7 @@ class ForumPost(Base, ModelHelperMixin, ModelFormatMixin):
     ip = Column(String(15))
 
 
-class NewsModel(Base, ModelHelperMixin, ModelFormatMixin):
+class NewsModel(Base, ModelHelperMixin):
     __tablename__ = "news"
     id = Column(Integer, primary_key=True)
     header = Column(String(64))
